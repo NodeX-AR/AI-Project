@@ -7,7 +7,7 @@ Now go to cmd of your system.
 Type `pip install opencv-python face-recognition`.  
 Now run the file and practice project.  
 
-**This code here is error free.** 
+**This code here is error free till now .If you find any error please report to Aswanth R.** 
 
 **This project is proprietary and confidential. See the LICENSE file for full details.**
 ----------------------------------------------------------------------------------------
