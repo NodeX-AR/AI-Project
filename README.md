@@ -23,3 +23,6 @@ Free for educational and evaluation purposes. Commercial use prohibited.
 6.If any issue comes up please check your python istallation in your pc and cross check the pip calls in your pc.
 7.Now first run the "admin.py" first before "main.py".
 8.After setup and adding students you can run "main.py" and check out the project.
+
+---
+## Demo not available because is too long to be added here
