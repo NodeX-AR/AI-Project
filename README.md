@@ -63,6 +63,7 @@ Press `q` to quit the camera.
 
 ## Demo Output (Sample)
 
+
 ```bash
 PS C:\Users\ASWANTH\AI Project> python admin.py
 +--------------------------------------------------------+
