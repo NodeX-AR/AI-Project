@@ -1,7 +1,7 @@
 # Smart Attendance System – CBSE Class 12 AI Project
 
 **Author:** Aswanth R  
-**Subject:** Artificial Intelligence (Code 843)  
+**Subject:** Artificial Intelligence (Code 843)  kl
 
 ---
 
