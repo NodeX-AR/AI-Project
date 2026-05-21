@@ -7,6 +7,7 @@
 
 ## License
 
+
 Educational Use License – see LICENSE file.  
 Free for educational and evaluation purposes. Commercial use prohibited.
 
@@ -61,6 +62,7 @@ Press `q` to quit the camera.
 ---
 
 ## Demo Output (Sample)
+
 
 ```bash
 PS C:\Users\ASWANTH\AI Project> python admin.py
