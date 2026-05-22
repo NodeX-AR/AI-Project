@@ -26,8 +26,7 @@ def init_pass_file():
         with open("pass.csv", 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(["username", "password", "role"])
-            writer.writerow(["admin", hash_password("admin123"), "admin"])
-        print("Created pass.csv with default admin account (admin/admin123)")
+            writer.writerow(["admin", hash_password("admin"), "admin"]
 
 def login():
     print("+--------------------------------------------------------+")
@@ -46,11 +45,11 @@ def login():
         next(reader)
         for row in reader:
             if len(row) >= 2 and row[0] == username and row[1] == hash_password(password):
-                print(f"| Welcome {username}!                                  |")
+                print(f"| Welcome {username}!                                    |")
                 print("+--------------------------------------------------------+")
                 return username
     
-    print("| Invalid username or password!                       |")
+    print("| Invalid username or password!                          |")
     print("+--------------------------------------------------------+")
     return None
 
@@ -67,7 +66,7 @@ def register():
             next(reader)
             for row in reader:
                 if len(row) >= 1 and row[0] == username:
-                    print("| Username already exists!                         |")
+                    print("| Username already exists!                               |")
                     print("+--------------------------------------------------------+")
                     return None
     
@@ -75,12 +74,12 @@ def register():
     confirm = input("| Confirm password: ").strip()
     
     if password != confirm:
-        print("| Passwords do not match!                           |")
+        print("| Passwords do not match!                                |")
         print("+--------------------------------------------------------+")
         return None
     
     if len(password) < 4:
-        print("| Password must be at least 4 characters!           |")
+        print("| Password must be at least 4 characters!                |")
         print("+--------------------------------------------------------+")
         return None
     
@@ -88,19 +87,19 @@ def register():
         writer = csv.writer(f)
         writer.writerow([username, hash_password(password), "user"])
     
-    print("| Registration successful! Please login.              |")
+    print("| Registration successful! Please login.                 |")
     print("+--------------------------------------------------------+")
     return username
 
 def add_student():
-    input("| Bring the student in front of camera and press Enter... |")
+    input("| Bring the student in front of camera and press Enter...|")
     
     name = input("| Whats your name: ").strip()
     print("+--------------------------------------------------------+")
     
     student_folder = os.path.join("Student_image", name)
     if os.path.exists(student_folder):
-        print(f"| Student {name} already exists!                      |")
+        print(f"| Student {name} already exists!                         |")
         print("+--------------------------------------------------------+")
         return
     
@@ -108,11 +107,11 @@ def add_student():
     
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        print("| Error: Cannot access camera                         |")
+        print("| Error: Cannot access camera                            |")
         print("+--------------------------------------------------------+")
         return
     
-    print("| Taking images. Please look at camera...              |")
+    print("| Taking images. Please look at camera...                |")
     count = 0
     
     while count < 100:
@@ -143,7 +142,7 @@ def add_student():
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             csv.writer(f).writerows(rows)
     
-    print(f"| Done! Student {name} added successfully!            |")
+    print(f"| Done! Student {name} added successfully!               |")
     print("+--------------------------------------------------------+")
 
 def delete_student():
@@ -151,7 +150,7 @@ def delete_student():
                 if os.path.isdir(os.path.join("Student_image", f))]
     
     if not students:
-        print("| No students found!                                 |")
+        print("| No students found!                                     |")
         print("+--------------------------------------------------------+")
         return
     
@@ -182,17 +181,17 @@ def delete_student():
                         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
                             csv.writer(f).writerows(new_rows)
                 
-                print(f"| Deleted {name}                                    |")
+                print(f"| Deleted {name}                                         |")
                 print("+--------------------------------------------------------+")
     except:
-        print("| Invalid choice                                     |")
+        print("| Invalid choice                                         |")
         print("+--------------------------------------------------------+")
 
 def show_absentees():
     csv_path, today = get_todays_csv()
     
     if not os.path.exists(csv_path):
-        print(f"| No attendance record for {today}                    |")
+        print(f"| No attendance record for {today}                       |")
         print("+--------------------------------------------------------+")
         return
     
@@ -204,24 +203,24 @@ def show_absentees():
     
     print("+--------------------------------------------------------+")
     if absent:
-        print(f"| Today's Absentees ({today}):                         |")
+        print(f"| Today's Absentees ({today}):                           |")
         print("+--------------------------------------------------------+")
         for s in absent:
             print(f"|    • {s:<52} |")
     else:
-        print("| Everyone is present today!                         |")
+        print("| Everyone is present today!                             |")
     print("+--------------------------------------------------------+")
 
 def show_register():
     csv_path, today = get_todays_csv()
     
     if not os.path.exists(csv_path):
-        print(f"| No attendance record for {today}                    |")
+        print(f"| No attendance record for {today}                       |")
         print("+--------------------------------------------------------+")
         return
     
     print("+--------------------------------------------------------+")
-    print(f"| ATTENDANCE REGISTER - {today:<26} |")
+    print(f"| ATTENDANCE REGISTER - {today:<26}                      |")
     print("+--------------------------------------------------------+")
     
     with open(csv_path, 'r', newline='', encoding='utf-8') as f:
@@ -254,11 +253,11 @@ while True:
     elif choice == "2":
         register()
     elif choice == "3":
-        print("| Exiting...                                          |")
+        print("| Exiting...                                             |")
         print("+--------------------------------------------------------+")
         exit()
     else:
-        print("| Invalid choice! Please select 1-3                  |")
+        print("| Invalid choice! Please select 1-3                      |")
         print("+--------------------------------------------------------+")
 
 while True:
@@ -285,7 +284,7 @@ while True:
     elif choice == "4":
         show_register()
     elif choice == "5":
-        print("| Logging out...                                      |")
+        print("| Logging out...                                         |")
         print("+--------------------------------------------------------+")
         while True:
             print("+--------------------------------------------------------+")
@@ -307,16 +306,16 @@ while True:
             elif choice == "2":
                 register()
             elif choice == "3":
-                print("| Exiting...                                          |")
+                print("| Exiting...                                             |")
                 print("+--------------------------------------------------------+")
                 exit()
             else:
-                print("| Invalid choice! Please select 1-3                  |")
+                print("| Invalid choice! Please select 1-3                      |")
                 print("+--------------------------------------------------------+")
         continue
     else:
-        print("| Invalid choice! Please select 1-5                  |")
+        print("| Invalid choice! Please select 1-5                      |")
         print("+--------------------------------------------------------+")
     
-    input("| Press Enter to continue...                          |")
+    input("| Press Enter to continue...                             |")
     print("+--------------------------------------------------------+")
