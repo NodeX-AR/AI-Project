@@ -8,10 +8,8 @@ print("+--------------------------------------------------------+")
 print("|               SMART ATTENDANCE SYSTEM                  |")
 print("+--------------------------------------------------------+")
 
-# Load face detector
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Load and prepare student faces
 student_faces = []
 student_names = []
 
@@ -30,7 +28,6 @@ for student_name in os.listdir("Student_image"):
                 img_path = os.path.join(student_path, img_file)
                 img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
                 if img is not None:
-                    # Detect face in training image
                     faces = face_cascade.detectMultiScale(img, 1.3, 5)
                     if len(faces) > 0:
                         (x, y, w, h) = faces[0]
@@ -38,7 +35,6 @@ for student_name in os.listdir("Student_image"):
                         face = cv2.resize(face, (100, 100))
                         faces_for_student.append(face)
                     else:
-                        # Use whole image if no face detected
                         face = cv2.resize(img, (100, 100))
                         faces_for_student.append(face)
         
@@ -49,11 +45,9 @@ for student_name in os.listdir("Student_image"):
 print(f"| Loaded {len(student_names)} students                   |")
 print("+--------------------------------------------------------+")
 
-# Initialize attendance
 attendance = {name: "Absent" for name in student_names}
 os.makedirs("register", exist_ok=True)
 
-# Simple face comparison function
 def compare_faces(face1, face2):
     face1 = cv2.resize(face1, (100, 100))
     face2 = cv2.resize(face2, (100, 100))
@@ -61,7 +55,6 @@ def compare_faces(face1, face2):
     similarity = 100 - (np.mean(diff) / 2.55)
     return similarity
 
-# Start camera
 cap = cv2.VideoCapture(0)
 print("| Systems Ready !                                        |")
 print("| Press 'q' to quit                                      |")
@@ -77,17 +70,13 @@ while True:
     
     frame_count += 1
     
-    # Process every 3rd frame
     if frame_count % 3 == 0:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         
         for (x, y, w, h) in faces:
-            # Get face from camera
             camera_face = gray[y:y+h, x:x+w]
             camera_face = cv2.resize(camera_face, (100, 100))
-            
-            # Compare with all students
             best_match = None
             best_score = 0
             
@@ -98,23 +87,19 @@ while True:
                         best_score = score
                         best_match = student_names[i]
             
-            # Mark attendance
             if best_match and best_match not in marked:
                 attendance[best_match] = "Present"
                 marked.add(best_match)
                 
                 present = sum(1 for v in attendance.values() if v == "Present")
                 print(f"| {best_match}-PRESENT! ({present}/{len(student_names)}) |")
-                
-                # Save attendance
                 today = datetime.now().strftime("%Y-%m-%d")
                 csv_path = os.path.join("register", f"{today}.csv")
                 with open(csv_path, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     for name, status in attendance.items():
                         writer.writerow([name, status])
-            
-            # Draw rectangle
+                        
             color = (0, 255, 0) if best_match else (0, 0, 255)
             cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
             
@@ -122,7 +107,6 @@ while True:
                 cv2.putText(frame, f"{best_match} ({best_score:.0f}%)", (x, y-10), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
     
-    # Show status
     present = sum(1 for v in attendance.values() if v == "Present")
     cv2.putText(frame, f"Present: {present}/{len(student_names)}", (10, 30), 
                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
@@ -135,7 +119,6 @@ while True:
 cap.release()
 cv2.destroyAllWindows()
 
-# Final report
 present = sum(1 for v in attendance.values() if v == "Present")
 print("\n+--------------------------------------------------------+")
 print(f"| FINAL ATTENDANCE -{datetime.now().strftime('%Y-%m-%d')}|")
