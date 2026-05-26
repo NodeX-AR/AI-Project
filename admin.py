@@ -26,7 +26,7 @@ def init_pass_file():
         with open("pass.csv", 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(["username", "password", "role"])
-            writer.writerow(["admin", hash_password("admin"), "admin"]
+            writer.writerow(["admin", hash_password("admin"), "admin"])
 
 def login():
     print("+--------------------------------------------------------+")
