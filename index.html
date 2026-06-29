@@ -392,6 +392,7 @@
     function findBestMatch(descriptor) {
         let bestDist = Infinity;
         let bestStudent = null;
+
         for (const student of students) {
             for (const desc of student.descriptors) {
                 const dist = faceapi.euclideanDistance(descriptor, desc);
@@ -401,10 +402,13 @@
                 }
             }
         }
-        const THRESHOLD = 0.6;
+        const THRESHOLD = 0.5;   // stricter
         if (bestDist < THRESHOLD) {
-            return { student: bestStudent, distance: bestDist };
+            const confidence = Math.max(0, (1 - bestDist / THRESHOLD) * 100);
+            console.log(`✅ Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
+            return { student: bestStudent, distance: bestDist, confidence };
         }
+        console.warn(`❌ No match – best distance ${bestDist.toFixed(3)} > threshold`);
         return null;
     }
 
