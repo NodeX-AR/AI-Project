@@ -3,58 +3,62 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Smart Attendance</title>
+    <title>Smart Attendance System</title>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.1/xlsx.full.min.js"></script>
     <style>
-        /* --- (your styles remain exactly the same) --- */
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:12px; }
-        .app { max-width:600px; width:100%; background:white; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.06); padding:20px 16px 28px; }
-        h1 { font-size:22px; font-weight:700; text-align:center; margin-bottom:16px; color:#0f172a; }
-        .page { display:none; }
+        body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+        .app { max-width:700px; width:100%; background:white; border-radius:28px; box-shadow:0 20px 60px rgba(0,0,0,0.08); padding:24px 20px 32px; }
+        h1 { font-size:24px; font-weight:700; text-align:center; margin-bottom:20px; color:#0f172a; }
+        .page { display:none; animation:fade .25s ease; }
         .page.active { display:block; }
-        .menu-grid { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
-        .menu-btn { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px 16px; font-size:16px; font-weight:600; color:#0f172a; cursor:pointer; display:flex; align-items:center; gap:10px; }
-        .menu-btn:active { background:#eef2f6; }
-        .menu-btn .icon { font-size:24px; }
-        .menu-btn .badge { background:#e2e8f0; border-radius:20px; padding:0 12px; font-size:13px; color:#475569; }
-        .page-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
-        .back-btn { background:none; border:none; font-size:24px; cursor:pointer; padding:0 4px; }
-        .page-title { font-size:18px; font-weight:700; flex:1; }
-        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:4px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+        @keyframes fade { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
+        .menu-grid { display:flex; flex-direction:column; gap:14px; margin-top:12px; }
+        .menu-btn { background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px 20px; font-size:18px; font-weight:600; color:#0f172a; cursor:pointer; transition:all .15s; text-align:left; display:flex; align-items:center; gap:12px; }
+        .menu-btn:active { background:#eef2f6; transform:scale(0.98); }
+        .menu-btn .badge { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; margin-left:auto; }
+        .page-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+        .back-btn { background:none; border:none; font-size:24px; cursor:pointer; padding:4px 8px; border-radius:12px; font-weight:700; }
+        .back-btn:active { background:#e2e8f0; }
+        .page-title { font-size:20px; font-weight:700; flex:1; }
+        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:6px 16px; font-size:14px; font-weight:600; color:#1e293b; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
         .action-btn:active { background:#cbd5e1; }
         .action-btn.primary { background:#0f172a; color:white; }
-        .video-wrapper { background:#f1f5f9; border-radius:16px; overflow:hidden; margin:8px 0 12px; }
+        .action-btn.primary:active { background:#1e293b; }
+        .video-wrapper { background:#f1f5f9; border-radius:20px; overflow:hidden; margin:12px 0 16px; position:relative; }
         #video { width:100%; display:block; aspect-ratio:4/3; object-fit:cover; background:#0f172a; }
-        .cam-controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0; }
-        .cam-btn { background:#0f172a; border:none; border-radius:30px; padding:10px 20px; color:white; font-weight:600; font-size:15px; cursor:pointer; flex:1 1 auto; min-width:90px; }
+        .cam-controls { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:12px 0 8px; }
+        .cam-btn { background:#0f172a; border:none; border-radius:40px; padding:12px 28px; color:white; font-weight:600; font-size:16px; cursor:pointer; flex:1 1 auto; min-width:120px; }
         .cam-btn:active { background:#1e293b; }
         .cam-btn.secondary { background:#e2e8f0; color:#0f172a; }
+        .cam-btn.secondary:active { background:#cbd5e1; }
         .cam-btn.success { background:#16a34a; }
-        .status-msg { text-align:center; padding:10px; font-weight:500; border-radius:12px; margin:8px 0; font-size:15px; }
+        .cam-btn.success:active { background:#15803d; }
+        .status-msg { text-align:center; padding:12px; font-weight:500; border-radius:12px; margin:8px 0; }
         .status-msg.success { background:#dcfce7; color:#166534; }
         .status-msg.error { background:#fee2e2; color:#991b1b; }
         .status-msg.info { background:#e0f2fe; color:#0369a1; }
         .status-msg.warning { background:#fef3c7; color:#92400e; }
-        .table-wrap { overflow-x:auto; margin:8px 0 12px; border-radius:12px; border:1px solid #e2e8f0; }
-        table { width:100%; border-collapse:collapse; font-size:14px; }
-        th { background:#f8fafc; text-align:left; padding:8px 12px; border-bottom:1px solid #e2e8f0; }
-        td { padding:8px 12px; border-bottom:1px solid #f1f5f9; }
+        .table-wrap { overflow-x:auto; margin:12px 0 16px; border-radius:16px; border:1px solid #e2e8f0; }
+        table { width:100%; border-collapse:collapse; font-size:15px; }
+        th { background:#f8fafc; text-align:left; padding:12px 16px; font-weight:600; border-bottom:1px solid #e2e8f0; }
+        td { padding:10px 16px; border-bottom:1px solid #f1f5f9; }
         tr:last-child td { border-bottom:none; }
         .status-present { color:#16a34a; font-weight:600; }
         .status-absent { color:#dc2626; font-weight:600; }
-        .empty-msg { text-align:center; padding:24px 16px; color:#64748b; font-size:15px; }
-        .date-picker { display:flex; gap:8px; align-items:center; margin:8px 0 12px; flex-wrap:wrap; }
-        .date-picker input[type="date"] { padding:8px 12px; border:1px solid #d1d5db; border-radius:30px; font-size:15px; background:white; flex:1 1 150px; }
-        .date-picker button { background:#0f172a; border:none; border-radius:30px; padding:8px 16px; color:white; font-weight:600; font-size:14px; cursor:pointer; }
+        .empty-msg { text-align:center; padding:32px 16px; color:#64748b; }
+        .date-picker { display:flex; gap:10px; align-items:center; margin:8px 0 16px; flex-wrap:wrap; }
+        .date-picker input[type="date"] { padding:10px 14px; border:1px solid #d1d5db; border-radius:30px; font-size:16px; background:white; flex:1 1 180px; }
+        .date-picker button { background:#0f172a; border:none; border-radius:30px; padding:10px 22px; color:white; font-weight:600; font-size:15px; cursor:pointer; }
         .date-picker button:active { background:#1e293b; }
-        .result-box { padding:14px; border-radius:14px; margin:10px 0; text-align:center; }
-        .result-box .name { font-size:24px; font-weight:700; }
-        .result-box .sub { font-size:15px; color:#475569; margin-top:2px; }
+        .mt-8 { margin-top:8px; }
+        .result-box { padding:16px; border-radius:16px; margin:12px 0; text-align:center; }
+        .result-box .name { font-size:28px; font-weight:700; }
+        .result-box .sub { font-size:16px; color:#475569; margin-top:4px; }
         .result-box.success { background:#dcfce7; border:1px solid #86efac; }
         .result-box.error { background:#fee2e2; border:1px solid #fca5a5; }
-        .result-box .emoji { font-size:36px; display:block; margin-bottom:4px; }
+        .result-box .emoji { font-size:40px; display:block; margin-bottom:8px; }
         .hidden { display:none; }
         .connection-status { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
         .connection-status.online { background:#22c55e; }
@@ -64,83 +68,80 @@
 <body>
 
 <div class="app" id="app">
-    <h1>📋 Smart Attendance</h1>
+    <h1>Smart Attendance System</h1>
 
-    <!-- ===== MAIN MENU ===== -->
+    <!-- MAIN MENU -->
     <div id="page-main" class="page active">
         <div class="menu-grid">
             <button class="menu-btn" id="goFace">
-                <span class="icon">📸</span>
-                <span class="label">Face Recognition</span>
+                <span>Face Recognition Attendance</span>
                 <span class="badge">Live</span>
             </button>
             <button class="menu-btn" id="goAttendance">
-                <span class="icon">📅</span>
-                <span class="label">Today’s Attendance</span>
+                <span>Today's Attendance</span>
                 <span class="badge">View</span>
             </button>
             <button class="menu-btn" id="goAbsentees">
-                <span class="icon">🚫</span>
-                <span class="label">Today’s Absentees</span>
+                <span>Today's Absentees</span>
                 <span class="badge">View</span>
             </button>
         </div>
-        <div style="margin-top:16px; text-align:center; font-size:13px; color:#94a3b8;">
+        <div style="margin-top:24px; text-align:center; font-size:14px; color:#94a3b8;">
             <span id="connIndicator"><span class="connection-status offline" id="connDot"></span> <span id="connText">Connecting...</span></span>
         </div>
     </div>
 
-    <!-- ===== FACE RECOGNITION ===== -->
+    <!-- FACE RECOGNITION -->
     <div id="page-face" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">📸 Face Recognition</span>
+            <button class="back-btn" data-back="main">&#8249;</button>
+            <span class="page-title">Face Recognition</span>
         </div>
         <div class="video-wrapper">
             <video id="video" autoplay playsinline></video>
         </div>
         <div class="cam-controls">
-            <button class="cam-btn" id="startCam">▶ Start</button>
-            <button class="cam-btn secondary" id="stopCam">⏹ Stop</button>
-            <button class="cam-btn success" id="markAttendanceBtn">✅ Mark</button>
+            <button class="cam-btn" id="startCam">Start Camera</button>
+            <button class="cam-btn secondary" id="stopCam">Stop</button>
+            <button class="cam-btn success" id="markAttendanceBtn">Mark Attendance</button>
         </div>
-        <div id="faceStatus" class="status-msg info">Start camera, then tap Mark.</div>
+        <div id="faceStatus" class="status-msg info">Camera off. Start camera, then click "Mark Attendance".</div>
         <div id="resultBox" class="result-box hidden">
-            <span class="emoji" id="resultEmoji">✅</span>
+            <span class="emoji" id="resultEmoji"></span>
             <div class="name" id="resultName">—</div>
             <div class="sub" id="resultSub"></div>
         </div>
     </div>
 
-    <!-- ===== ATTENDANCE ===== -->
+    <!-- ATTENDANCE -->
     <div id="page-attendance" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">📅 Attendance</span>
-            <button class="action-btn primary" id="downloadAttendance">⬇ Excel</button>
+            <button class="back-btn" data-back="main">&#8249;</button>
+            <span class="page-title">Attendance</span>
+            <button class="action-btn primary" id="downloadAttendance">Download Excel</button>
         </div>
         <div class="date-picker">
             <input type="date" id="attDate" />
             <button id="loadAttendance">Load</button>
         </div>
         <div id="attendanceTableWrap" class="table-wrap">
-            <div class="empty-msg">Select date and Load.</div>
+            <div class="empty-msg">Select a date and click Load.</div>
         </div>
     </div>
 
-    <!-- ===== ABSENTEES ===== -->
+    <!-- ABSENTEES -->
     <div id="page-absentees" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">🚫 Absentees</span>
-            <button class="action-btn primary" id="downloadAbsentees">⬇ Excel</button>
+            <button class="back-btn" data-back="main">&#8249;</button>
+            <span class="page-title">Absentees</span>
+            <button class="action-btn primary" id="downloadAbsentees">Download Excel</button>
         </div>
         <div class="date-picker">
             <input type="date" id="absDate" />
             <button id="loadAbsentees">Load</button>
         </div>
         <div id="absenteesList" class="table-wrap">
-            <div class="empty-msg">Select date and Load.</div>
+            <div class="empty-msg">Select a date and click Load.</div>
         </div>
     </div>
 
@@ -148,30 +149,58 @@
 
 <script>
     // ============================================================
-    //  DIRECT GITHUB API (no proxy) – with token caching
+    //  GITHUB API – proxy first, fallback to direct with token
     // ============================================================
-    const OWNER = 'NodeX-AR';      // ← YOUR GITHUB USERNAME
-    const REPO = 'AI-Project';     // ← YOUR REPO NAME
-
-    // Load saved token from localStorage
+    let useDirectAPI = false;
     let githubToken = localStorage.getItem('github_token') || '';
-    let useDirectAPI = true;   // Always use direct API, bypass proxy
+    const OWNER = 'NodeX-AR';      // CHANGE TO YOUR USERNAME
+    const REPO = 'AI-Project';     // CHANGE TO YOUR REPO
 
     async function githubRequest(method, path, data = null) {
-        // If no token, ask for it
-        if (!githubToken) {
-            const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
-            if (!t) throw new Error('Token required');
-            githubToken = t;
-            localStorage.setItem('github_token', githubToken);
+        if (!useDirectAPI) {
+            try {
+                const res = await fetch('/api/github', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path, method, data }),
+                });
+                if (res.status === 404) {
+                    useDirectAPI = true;
+                    if (!githubToken) {
+                        const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
+                        if (!t) throw new Error('Token required');
+                        githubToken = t;
+                        localStorage.setItem('github_token', githubToken);
+                    }
+                    return await directGitHubRequest(method, path, data);
+                }
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'HTTP ' + res.status);
+                }
+                return await res.json();
+            } catch (e) {
+                if (e.message.includes('404') || e.message.includes('Failed to fetch')) {
+                    useDirectAPI = true;
+                    if (!githubToken) {
+                        const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
+                        if (!t) throw new Error('Token required');
+                        githubToken = t;
+                        localStorage.setItem('github_token', githubToken);
+                    }
+                    return await directGitHubRequest(method, path, data);
+                }
+                throw e;
+            }
+        } else {
+            return await directGitHubRequest(method, path, data);
         }
-        return await directGitHubRequest(method, path, data);
     }
 
     async function directGitHubRequest(method, path, data = null) {
-        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+        const url = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path;
         const headers = {
-            'Authorization': `token ${githubToken}`,
+            'Authorization': 'token ' + githubToken,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json',
         };
@@ -180,7 +209,7 @@
         const res = await fetch(url, options);
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.message || `HTTP ${res.status}`);
+            throw new Error(err.message || 'HTTP ' + res.status);
         }
         return await res.json();
     }
@@ -199,10 +228,11 @@
         }
     }
 
-    async function updateFile(path, content, message = 'Update') {
+    async function updateFile(path, content, message) {
+        message = message || 'Update file';
         const existing = await getFileContent(path);
         const payload = {
-            message,
+            message: message,
             content: btoa(content),
             sha: existing ? existing.sha : undefined,
         };
@@ -210,7 +240,7 @@
     }
 
     // ============================================================
-    //  STUDENTS
+    //  STUDENTS DATA (multi‑descriptor)
     // ============================================================
     let students = [];
     let studentNames = [];
@@ -218,109 +248,130 @@
     async function loadStudents() {
         try {
             const file = await getFileContent('students.json');
-            if (!file) { students = []; studentNames = []; return; }
+            if (!file) {
+                console.warn('students.json not found');
+                students = [];
+                studentNames = [];
+                return;
+            }
             const data = JSON.parse(file.content);
-            students = data.map(s => {
-                let descriptors;
-                if (s.descriptors) descriptors = s.descriptors.map(d => new Float32Array(d));
-                else if (s.descriptor) descriptors = [new Float32Array(s.descriptor)];
-                else throw new Error('No descriptors');
-                return { name: s.name, descriptors };
+            students = data.map(function(s) {
+                var descriptors;
+                if (s.descriptors && Array.isArray(s.descriptors)) {
+                    descriptors = s.descriptors.map(function(d) { return new Float32Array(d); });
+                } else if (s.descriptor) {
+                    descriptors = [new Float32Array(s.descriptor)];
+                } else {
+                    throw new Error('Missing descriptors or descriptor');
+                }
+                return { name: s.name, descriptors: descriptors };
             });
-            studentNames = students.map(s => s.name);
-        } catch (e) { console.error(e); students = []; studentNames = []; }
+            studentNames = students.map(function(s) { return s.name; });
+            console.log('Loaded ' + students.length + ' students.');
+        } catch (e) {
+            console.error('Failed to load students:', e);
+            students = [];
+            studentNames = [];
+        }
     }
 
     // ============================================================
-    //  ATTENDANCE HELPERS
+    //  ATTENDANCE CSV HELPERS
     // ============================================================
-    function todayStr() { return new Date().toISOString().split('T')[0]; }
-    function csvPath(dateStr) { return `register/${dateStr}.csv`; }
+    function getTodayStr() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function getCsvPath(dateStr) {
+        return 'register/' + dateStr + '.csv';
+    }
 
     async function loadAttendanceCsv(dateStr) {
         try {
-            const file = await getFileContent(csvPath(dateStr));
+            var file = await getFileContent(getCsvPath(dateStr));
             if (!file) return null;
-            const lines = file.content.trim().split('\n');
-            return lines.map(line => {
-                const [name, status] = line.split(',');
-                return { name: name.trim(), status: status.trim() };
+            var lines = file.content.trim().split('\n');
+            return lines.map(function(line) {
+                var parts = line.split(',');
+                return { name: parts[0].trim(), status: parts[1].trim() };
             });
-        } catch { return null; }
+        } catch (e) {
+            return null;
+        }
     }
 
     async function getFullAttendance(dateStr) {
-        let records = await loadAttendanceCsv(dateStr);
-        const allNames = await getAllStudentNames();
-        if (!records) records = allNames.map(name => ({ name, status: 'Absent' }));
-        else {
-            const exist = new Set(records.map(r => r.name));
-            for (const name of allNames) if (!exist.has(name)) records.push({ name, status: 'Absent' });
+        var records = await loadAttendanceCsv(dateStr);
+        var allNames = await getAllStudentNames();
+        if (!records) {
+            records = allNames.map(function(name) { return { name: name, status: 'Absent' }; });
+        } else {
+            var existing = new Set(records.map(function(r) { return r.name; }));
+            for (var i = 0; i < allNames.length; i++) {
+                var name = allNames[i];
+                if (!existing.has(name)) {
+                    records.push({ name: name, status: 'Absent' });
+                }
+            }
         }
-        records.sort((a,b) => a.name.localeCompare(b.name));
+        records.sort(function(a, b) { return a.name.localeCompare(b.name); });
         return records;
     }
 
-    async function getAllStudentNames() { await loadStudents(); return studentNames; }
+    async function getAllStudentNames() {
+        await loadStudents();
+        return studentNames;
+    }
 
     // ============================================================
     //  PAGE NAVIGATION
     // ============================================================
-    function showPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    document.querySelectorAll('[data-back]').forEach(btn => {
-        btn.addEventListener('click', () => showPage('page-main'));
-    });
-
-    document.getElementById('goFace').addEventListener('click', () => {
-        showPage('page-face');
-        initFace();
-    });
-    document.getElementById('goAttendance').addEventListener('click', () => {
-        showPage('page-attendance');
-        const d = todayStr();
-        document.getElementById('attDate').value = d;
-        loadAttendance(d);
-    });
-    document.getElementById('goAbsentees').addEventListener('click', () => {
-        showPage('page-absentees');
-        const d = todayStr();
-        document.getElementById('absDate').value = d;
-        loadAbsentees(d);
-    });
-
-    // ============================================================
-    //  CONNECTION CHECK
-    // ============================================================
-    async function checkConnection() {
-        const dot = document.getElementById('connDot');
-        const text = document.getElementById('connText');
-        try {
-            await getFileContent('students.json');
-            dot.className = 'connection-status online';
-            text.textContent = 'Connected (Direct API)';
-        } catch {
-            dot.className = 'connection-status offline';
-            text.textContent = 'Offline – check token';
+    function showPage(pageId) {
+        var pages = document.querySelectorAll('.page');
+        for (var i = 0; i < pages.length; i++) {
+            pages[i].classList.remove('active');
         }
+        document.getElementById(pageId).classList.add('active');
     }
 
-    // ============================================================
-    //  FACE RECOGNITION
-    // ============================================================
-    let faceModelsLoaded = false;
-    let cameraStream = null;
-    const video = document.getElementById('video');
-    const faceStatus = document.getElementById('faceStatus');
-    const resultBox = document.getElementById('resultBox');
-    const resultEmoji = document.getElementById('resultEmoji');
-    const resultName = document.getElementById('resultName');
-    const resultSub = document.getElementById('resultSub');
+    var backBtns = document.querySelectorAll('[data-back]');
+    for (var i = 0; i < backBtns.length; i++) {
+        backBtns[i].addEventListener('click', function() {
+            showPage('page-main');
+        });
+    }
 
-    function setFaceStatus(msg, type = 'info') {
+    document.getElementById('goFace').addEventListener('click', function() {
+        showPage('page-face');
+        initFaceRecognition();
+    });
+    document.getElementById('goAttendance').addEventListener('click', function() {
+        showPage('page-attendance');
+        var today = getTodayStr();
+        document.getElementById('attDate').value = today;
+        loadAttendance(today);
+    });
+    document.getElementById('goAbsentees').addEventListener('click', function() {
+        showPage('page-absentees');
+        var today = getTodayStr();
+        document.getElementById('absDate').value = today;
+        loadAbsentees(today);
+    });
+
+    // ============================================================
+    //  FACE RECOGNITION – One‑Shot Capture
+    // ============================================================
+    var faceModelsLoaded = false;
+    var cameraStream = null;
+    var video = document.getElementById('video');
+    var faceStatus = document.getElementById('faceStatus');
+    var resultBox = document.getElementById('resultBox');
+    var resultEmoji = document.getElementById('resultEmoji');
+    var resultName = document.getElementById('resultName');
+    var resultSub = document.getElementById('resultSub');
+
+    function setFaceStatus(msg, type) {
+        type = type || 'info';
         faceStatus.textContent = msg;
         faceStatus.className = 'status-msg ' + type;
     }
@@ -333,41 +384,46 @@
         resultSub.textContent = sub;
     }
 
-    function hideResult() { resultBox.classList.add('hidden'); }
+    function hideResult() {
+        resultBox.classList.add('hidden');
+    }
 
     async function loadFaceModels() {
         if (faceModelsLoaded) return true;
         try {
-            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
-            setFaceStatus('Loading models...', 'info');
+            var MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
+            setFaceStatus('Loading face models...', 'info');
             await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             faceModelsLoaded = true;
-            setFaceStatus('Models ready.', 'success');
+            setFaceStatus('Models loaded. Start camera.', 'success');
             return true;
         } catch (e) {
             try {
-                const FALLBACK = 'https://justadudewhohacks.github.io/face-api.js/models/';
-                setFaceStatus('Trying fallback...', 'info');
-                await faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK);
+                var FALLBACK_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
+                setFaceStatus('Trying fallback model source...', 'info');
+                await faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL);
                 faceModelsLoaded = true;
-                setFaceStatus('Models ready (fallback).', 'success');
+                setFaceStatus('Models loaded (fallback).', 'success');
                 return true;
             } catch (e2) {
-                setFaceStatus('❌ Failed to load models.', 'error');
+                setFaceStatus('Failed to load models. Check internet.', 'error');
                 return false;
             }
         }
     }
 
-    async function initFace() {
+    async function initFaceRecognition() {
         await loadFaceModels();
         await loadStudents();
-        if (students.length === 0) setFaceStatus('⚠️ No students found.', 'error');
-        else setFaceStatus(`📚 ${students.length} students. Start camera.`, 'info');
+        if (students.length === 0) {
+            setFaceStatus('No students loaded. Please create students.json.', 'error');
+        } else {
+            setFaceStatus('Loaded ' + students.length + ' students. Start camera.', 'info');
+        }
         hideResult();
     }
 
@@ -377,14 +433,16 @@
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
             video.srcObject = cameraStream;
             await video.play();
-            setFaceStatus('Camera ready. Tap Mark.', 'info');
+            setFaceStatus('Camera ready. Click "Mark Attendance".', 'info');
             hideResult();
-        } catch { setFaceStatus('❌ Camera access denied.', 'error'); }
+        } catch (e) {
+            setFaceStatus('Camera access denied.', 'error');
+        }
     }
 
     function stopCamera() {
         if (cameraStream) {
-            cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream.getTracks().forEach(function(t) { t.stop(); });
             cameraStream = null;
             video.srcObject = null;
             setFaceStatus('Camera stopped.', 'info');
@@ -393,70 +451,84 @@
     }
 
     function findBestMatch(descriptor) {
-        let bestDist = Infinity, bestStudent = null;
-        for (const s of students) {
-            for (const d of s.descriptors) {
-                const dist = faceapi.euclideanDistance(descriptor, d);
-                if (dist < bestDist) { bestDist = dist; bestStudent = s; }
+        var bestDist = Infinity;
+        var bestStudent = null;
+        for (var i = 0; i < students.length; i++) {
+            var s = students[i];
+            for (var j = 0; j < s.descriptors.length; j++) {
+                var d = s.descriptors[j];
+                var dist = faceapi.euclideanDistance(descriptor, d);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestStudent = s;
+                }
             }
         }
-        if (bestDist < 0.6) return { student: bestStudent, distance: bestDist };
+        var THRESHOLD = 0.6;
+        if (bestDist < THRESHOLD) {
+            return { student: bestStudent, distance: bestDist };
+        }
         return null;
     }
 
     async function markAttendance() {
-        if (!faceModelsLoaded) {
-            const ok = await loadFaceModels();
-            if (!ok) return;
-        }
         if (!cameraStream || video.readyState < 2) {
-            setFaceStatus('⚠️ Start camera first.', 'error');
+            setFaceStatus('Start camera first.', 'error');
             return;
         }
-        setFaceStatus('Recognising...', 'info');
+
+        setFaceStatus('Capturing and recognising...', 'info');
         hideResult();
 
         try {
-            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+            var detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
                 .withFaceLandmarks()
                 .withFaceDescriptor();
 
             if (!detection) {
-                showResult('😕', 'No face', 'Look at camera and try again.', 'error');
-                setFaceStatus('No face.', 'error');
+                showResult('', 'No face detected', 'Please look at the camera and try again.', 'error');
+                setFaceStatus('No face in frame.', 'error');
                 return;
             }
 
-            const match = findBestMatch(detection.descriptor);
+            var descriptor = detection.descriptor;
+            var match = findBestMatch(descriptor);
+
             if (!match) {
-                showResult('❌', 'Not recognised', 'You are not in the system.', 'error');
-                setFaceStatus('Unknown.', 'error');
+                showResult('', 'Not recognised', 'You are not in the system. Please contact admin.', 'error');
+                setFaceStatus('Unknown person.', 'error');
                 return;
             }
 
-            const name = match.student.name;
-            const confidence = (1 - match.distance) * 100;
+            var name = match.student.name;
+            var confidence = (1 - match.distance) * 100;
 
-            const today = todayStr();
-            const records = await getFullAttendance(today);
-            const found = records.find(r => r.name === name);
+            var today = getTodayStr();
+            var records = await getFullAttendance(today);
+            var found = null;
+            for (var i = 0; i < records.length; i++) {
+                if (records[i].name === name) {
+                    found = records[i];
+                    break;
+                }
+            }
             if (found && found.status === 'Present') {
-                showResult('⏳', name, `Already present (${confidence.toFixed(0)}%)`, 'success');
-                setFaceStatus(`Already marked.`, 'info');
+                showResult('', name, 'Already present today (confidence ' + confidence.toFixed(1) + '%).', 'success');
+                setFaceStatus(name + ' already present.', 'info');
                 return;
             }
 
-            const updated = records.map(r => {
+            var updated = records.map(function(r) {
                 if (r.name === name) r.status = 'Present';
                 return r;
             });
-            const csv = updated.map(r => `${r.name},${r.status}`).join('\n');
-            await updateFile(csvPath(today), csv, `Mark ${name}`);
+            var csvContent = updated.map(function(r) { return r.name + ',' + r.status; }).join('\n');
+            await updateFile(getCsvPath(today), csvContent, 'Mark ' + name + ' present');
 
-            showResult('✅', name, `Attendance marked! You may go. (${confidence.toFixed(0)}%)`, 'success');
-            setFaceStatus(`✅ ${name} marked.`, 'success');
+            showResult('', name, 'Attendance marked! You may go now. (confidence ' + confidence.toFixed(1) + '%)', 'success');
+            setFaceStatus(name + ' marked present.', 'success');
         } catch (err) {
-            showResult('⚠️', 'Error', err.message, 'error');
+            showResult('', 'Error', err.message, 'error');
             setFaceStatus('Error: ' + err.message, 'error');
         }
     }
@@ -469,84 +541,110 @@
     //  VIEW ATTENDANCE / ABSENTEES
     // ============================================================
     async function loadAttendance(dateStr) {
-        const wrap = document.getElementById('attendanceTableWrap');
+        var wrap = document.getElementById('attendanceTableWrap');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
         try {
-            const records = await getFullAttendance(dateStr);
-            if (!records || records.length === 0) { wrap.innerHTML = '<div class="empty-msg">No data.</div>'; return; }
-            let html = `<table><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>`;
-            let present = 0;
-            for (const r of records) {
-                const isPresent = r.status === 'Present';
-                if (isPresent) present++;
-                html += `<tr><td>${r.name}</td><td class="${isPresent ? 'status-present' : 'status-absent'}">${r.status}</td></tr>`;
+            var records = await getFullAttendance(dateStr);
+            if (!records || records.length === 0) {
+                wrap.innerHTML = '<div class="empty-msg">No records.</div>';
+                return;
             }
-            html += `</tbody></table>`;
+            var html = '<table><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
+            var present = 0;
+            for (var i = 0; i < records.length; i++) {
+                var r = records[i];
+                var isPresent = (r.status === 'Present');
+                if (isPresent) present++;
+                html += '<tr><td>' + r.name + '</td><td class="' + (isPresent ? 'status-present' : 'status-absent') + '">' + r.status + '</td></tr>';
+            }
+            html += '</tbody></table>';
             wrap.innerHTML = html;
-            const summary = document.createElement('div');
-            summary.style.marginTop = '8px';
+            var summary = document.createElement('div');
+            summary.style.marginTop = '12px';
             summary.style.fontWeight = '600';
-            summary.textContent = `Present: ${present}  |  Absent: ${records.length - present}`;
+            summary.textContent = 'Present: ' + present + '  |  Absent: ' + (records.length - present);
             wrap.parentNode.insertBefore(summary, wrap.nextSibling);
         } catch (e) {
-            wrap.innerHTML = `<div class="empty-msg">Error: ${e.message}</div>`;
+            wrap.innerHTML = '<div class="empty-msg">Error: ' + e.message + '</div>';
         }
     }
 
     async function loadAbsentees(dateStr) {
-        const wrap = document.getElementById('absenteesList');
+        var wrap = document.getElementById('absenteesList');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
         try {
-            const records = await getFullAttendance(dateStr);
-            const absent = records.filter(r => r.status === 'Absent');
-            if (absent.length === 0) { wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>'; return; }
-            let html = `<table><thead><tr><th>Name</th></tr></thead><tbody>`;
-            for (const r of absent) html += `<tr><td>${r.name}</td></tr>`;
-            html += `</tbody></table>`;
+            var records = await getFullAttendance(dateStr);
+            var absent = records.filter(function(r) { return r.status === 'Absent'; });
+            if (absent.length === 0) {
+                wrap.innerHTML = '<div class="empty-msg">Everyone is present!</div>';
+                return;
+            }
+            var html = '<table><thead><tr><th>Name</th></tr></thead><tbody>';
+            for (var i = 0; i < absent.length; i++) {
+                html += '<tr><td>' + absent[i].name + '</td></tr>';
+            }
+            html += '</tbody></table>';
             wrap.innerHTML = html;
         } catch (e) {
-            wrap.innerHTML = `<div class="empty-msg">Error: ${e.message}</div>`;
+            wrap.innerHTML = '<div class="empty-msg">Error: ' + e.message + '</div>';
         }
     }
 
-    document.getElementById('loadAttendance').addEventListener('click', () => {
-        const date = document.getElementById('attDate').value;
+    document.getElementById('loadAttendance').addEventListener('click', function() {
+        var date = document.getElementById('attDate').value;
         if (date) loadAttendance(date);
     });
-    document.getElementById('loadAbsentees').addEventListener('click', () => {
-        const date = document.getElementById('absDate').value;
+    document.getElementById('loadAbsentees').addEventListener('click', function() {
+        var date = document.getElementById('absDate').value;
         if (date) loadAbsentees(date);
     });
 
     // ============================================================
     //  DOWNLOAD EXCEL
     // ============================================================
-    async function downloadAttendanceForDate(dateStr, type = 'attendance') {
+    async function downloadAttendanceForDate(dateStr, type) {
+        type = type || 'attendance';
         try {
-            const records = await getFullAttendance(dateStr);
-            let data;
+            var records = await getFullAttendance(dateStr);
+            var data;
             if (type === 'absentees') {
-                data = records.filter(r => r.status === 'Absent').map(r => ({ Name: r.name }));
+                data = records.filter(function(r) { return r.status === 'Absent'; }).map(function(r) { return { Name: r.name }; });
             } else {
-                data = records.map(r => ({ Name: r.name, Status: r.status }));
+                data = records.map(function(r) { return { Name: r.name, Status: r.status }; });
             }
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(data);
+            var wb = XLSX.utils.book_new();
+            var ws = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-            XLSX.writeFile(wb, `${type}_${dateStr}.xlsx`);
+            XLSX.writeFile(wb, type + '_' + dateStr + '.xlsx');
         } catch (e) {
             alert('Download failed: ' + e.message);
         }
     }
 
-    document.getElementById('downloadAttendance').addEventListener('click', () => {
-        const date = document.getElementById('attDate').value;
+    document.getElementById('downloadAttendance').addEventListener('click', function() {
+        var date = document.getElementById('attDate').value;
         if (date) downloadAttendanceForDate(date, 'attendance');
     });
-    document.getElementById('downloadAbsentees').addEventListener('click', () => {
-        const date = document.getElementById('absDate').value;
+    document.getElementById('downloadAbsentees').addEventListener('click', function() {
+        var date = document.getElementById('absDate').value;
         if (date) downloadAttendanceForDate(date, 'absentees');
     });
+
+    // ============================================================
+    //  CONNECTION CHECK
+    // ============================================================
+    async function checkConnection() {
+        var dot = document.getElementById('connDot');
+        var text = document.getElementById('connText');
+        try {
+            await getFileContent('students.json');
+            dot.className = 'connection-status online';
+            text.textContent = 'Connected';
+        } catch (e) {
+            dot.className = 'connection-status offline';
+            text.textContent = 'Offline - check token';
+        }
+    }
 
     // ============================================================
     //  INIT
@@ -554,11 +652,11 @@
     (async function init() {
         showPage('page-main');
         await loadStudents();
-        const today = todayStr();
+        var today = getTodayStr();
         document.getElementById('attDate').value = today;
         document.getElementById('absDate').value = today;
         checkConnection();
-        console.log('App ready (direct API mode).');
+        console.log('App ready.');
     })();
 </script>
 </body>
