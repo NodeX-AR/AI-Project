@@ -71,22 +71,17 @@
 
 <div class="app" id="app">
     <h1>Smart Attendance System</h1>
-
-    <!-- ========== MAIN MENU ========== -->
     <div id="page-main" class="page active">
         <div class="menu-grid">
             <button class="menu-btn" id="goFace">
-                <span class="icon">📸</span>
                 <span class="label">Face Recognition Attendance</span>
                 <span class="badge">Live</span>
             </button>
             <button class="menu-btn" id="goAttendance">
-                <span class="icon">📋</span>
                 <span class="label">Today’s Attendance</span>
                 <span class="badge">View</span>
             </button>
             <button class="menu-btn" id="goAbsentees">
-                <span class="icon">🚫</span>
                 <span class="label">Today’s Absentees</span>
                 <span class="badge">View</span>
             </button>
@@ -95,8 +90,6 @@
             <span>Connected via GitHub proxy</span>
         </div>
     </div>
-
-    <!-- ========== FACE RECOGNITION PAGE ========== -->
     <div id="page-face" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
@@ -121,8 +114,6 @@
             <div class="sub" id="resultSub"></div>
         </div>
     </div>
-
-    <!-- ========== ATTENDANCE PAGE ========== -->
     <div id="page-attendance" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
@@ -139,13 +130,11 @@
             <div class="empty-msg">Select a date and click Load.</div>
         </div>
     </div>
-
-    <!-- ========== ABSENTEES PAGE ========== -->
     <div id="page-absentees" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
             <span class="page-title">Absentees</span>
-            <button class="action-btn primary" id="downloadAbsentees">⬇ Excel</button>
+            <button class="action-btn primary" id="downloadAbsentees">Download Excel</button>
         </div>
 
         <div class="date-picker">
@@ -161,12 +150,9 @@
 </div>
 
 <script>
-    // ============================================================
-    //  GITHUB PROXY HELPERS (via Vercel)
-    // ============================================================
     async function githubRequest(method, path, data = null) {
         const url = '/.netlify/functions/github';
-        console.log(`🌐 Sending ${method} to ${url} with path: ${path}`);
+        console.log(`Sending ${method} to ${url} with path: ${path}`);
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -202,10 +188,6 @@
         };
         return await githubRequest('PUT', path, payload);
     }
-
-    // ============================================================
-    //  STUDENTS DATA (multi‑descriptor)
-    // ============================================================
     let students = [];
     let studentNames = [];
 
@@ -238,10 +220,6 @@
             studentNames = [];
         }
     }
-
-    // ============================================================
-    //  ATTENDANCE CSV HELPERS
-    // ============================================================
     function getTodayStr() {
         return new Date().toISOString().split('T')[0];
     }
@@ -314,10 +292,6 @@
         document.getElementById('absDate').value = today;
         loadAbsentees(today);
     });
-
-    // ============================================================
-    //  FACE RECOGNITION – with model loading guarantee
-    // ============================================================
     let faceModelsLoaded = false;
     let cameraStream = null;
     const video = document.getElementById('video');
@@ -348,14 +322,14 @@
     async function loadFaceModels() {
         if (faceModelsLoaded) return true;
         markBtn.disabled = true;
-        setFaceStatus('⏳ Loading face models...', 'info');
+        setFaceStatus('Loading face models...Please wait', 'info');
         try {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
             await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             faceModelsLoaded = true;
-            setFaceStatus('✅ Models loaded. Start camera.', 'success');
+            setFaceStatus('Models loaded. Start camera.', 'success');
             markBtn.disabled = false;
             return true;
         } catch (e) {
@@ -366,11 +340,11 @@
                 await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL);
                 await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL);
                 faceModelsLoaded = true;
-                setFaceStatus('✅ Models loaded (fallback). Start camera.', 'success');
+                setFaceStatus('Models loaded (fallback). Start camera.', 'success');
                 markBtn.disabled = false;
                 return true;
             } catch (e2) {
-                setFaceStatus('❌ Failed to load models. Check internet.', 'error');
+                setFaceStatus('Failed to load models. Check internet.', 'error');
                 markBtn.disabled = true;
                 return false;
             }
@@ -381,10 +355,10 @@
         await loadFaceModels();
         await loadStudents();
         if (students.length === 0) {
-            setFaceStatus('⚠️ No students loaded. Please create students.json.', 'error');
+            setFaceStatus('No students loaded. Please create students.json.', 'error');
             markBtn.disabled = true;
         } else {
-            setFaceStatus(`✅ Loaded ${students.length} students. Start camera.`, 'info');
+            setFaceStatus(`Loaded ${students.length} students. Start camera.`, 'info');
             markBtn.disabled = false;
         }
         hideResult();
@@ -396,11 +370,11 @@
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
             video.srcObject = cameraStream;
             await video.play();
-            setFaceStatus('📷 Camera ready. Click "Mark Attendance".', 'info');
+            setFaceStatus('Camera ready. Click "Mark Attendance".', 'info');
             hideResult();
             markBtn.disabled = false;
         } catch (e) {
-            setFaceStatus('❌ Camera access denied.', 'error');
+            setFaceStatus('Camera access denied.', 'error');
             markBtn.disabled = true;
         }
     }
@@ -410,7 +384,7 @@
             cameraStream.getTracks().forEach(t => t.stop());
             cameraStream = null;
             video.srcObject = null;
-            setFaceStatus('⏸️ Camera stopped.', 'info');
+            setFaceStatus('Camera stopped.', 'info');
             hideResult();
         }
     }
@@ -437,20 +411,20 @@
     async function markAttendance() {
         // Ensure models are loaded
         if (!faceModelsLoaded) {
-            setFaceStatus('⏳ Models still loading, please wait...', 'warning');
+            setFaceStatus('Models still loading, please wait...', 'warning');
             await loadFaceModels();
             if (!faceModelsLoaded) {
-                setFaceStatus('❌ Models failed to load. Cannot mark attendance.', 'error');
+                setFaceStatus(' Models failed to load. Cannot mark attendance.', 'error');
                 return;
             }
         }
 
         if (!cameraStream || video.readyState < 2) {
-            setFaceStatus('⚠️ Start camera first.', 'error');
+            setFaceStatus('Start camera first.', 'error');
             return;
         }
 
-        setFaceStatus('📸 Capturing and recognising...', 'info');
+        setFaceStatus('Wait recognising...', 'info');
         hideResult();
 
         try {
@@ -459,8 +433,8 @@
                 .withFaceDescriptor();
 
             if (!detection) {
-                showResult('😞 No face detected', 'Please look at the camera and try again.', 'error');
-                setFaceStatus('❌ No face in frame.', 'error');
+                showResult(' No face detected', 'Please look at the camera and try again.', 'error');
+                setFaceStatus(' No face in frame.', 'error');
                 return;
             }
 
@@ -468,8 +442,8 @@
             const match = findBestMatch(descriptor);
 
             if (!match) {
-                showResult('❌ Not recognised', 'You are not in the system. Please contact admin.', 'error');
-                setFaceStatus('❌ Unknown person.', 'error');
+                showResult('Not recognised', 'You are not in our system. Please contact admin.', 'error');
+                setFaceStatus('Unknown person.', 'error');
                 return;
             }
 
@@ -481,8 +455,8 @@
             const records = await getFullAttendance(today);
             const found = records.find(r => r.name === name);
             if (found && found.status === 'Present') {
-                showResult(name, `✅ Already marked present today (confidence ${confidence.toFixed(1)}%).`, 'success');
-                setFaceStatus(`ℹ️ ${name} already present.`, 'info');
+                showResult(name, `Already marked present today (confidence ${confidence.toFixed(1)}%).`, 'success');
+                setFaceStatus(`${name} already present.`, 'info');
                 return;
             }
 
@@ -493,24 +467,16 @@
             const csvContent = updated.map(r => `${r.name},${r.status}`).join('\n');
             await updateFile(getCsvPath(today), csvContent, `Mark ${name} present`);
 
-            showResult(name, `✅ Attendance marked! (confidence ${confidence.toFixed(1)}%)`, 'success');
-            setFaceStatus(`✅ ${name} marked present!`, 'success');
+            showResult(name, `Attendance marked! (confidence ${confidence.toFixed(1)}%)`, 'success');
+            setFaceStatus(`${name} marked present!`, 'success');
         } catch (err) {
-            showResult('⚠️ Error', err.message, 'error');
-            setFaceStatus('❌ Error: ' + err.message, 'error');
+            showResult('Error', err.message, 'error');
+            setFaceStatus('Error: ' + err.message, 'error');
         }
     }
-
-    // ============================================================
-    //  FACE PAGE EVENT LISTENERS
-    // ============================================================
     document.getElementById('startCam').addEventListener('click', startCamera);
     document.getElementById('stopCam').addEventListener('click', stopCamera);
     document.getElementById('markAttendanceBtn').addEventListener('click', markAttendance);
-
-    // ============================================================
-    //  VIEW ATTENDANCE / ABSENTEES
-    // ============================================================
     async function loadAttendance(dateStr) {
         const wrap = document.getElementById('attendanceTableWrap');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
@@ -566,10 +532,6 @@
         const date = document.getElementById('absDate').value;
         if (date) loadAbsentees(date);
     });
-
-    // ============================================================
-    //  DOWNLOAD EXCEL
-    // ============================================================
     async function downloadAttendanceForDate(dateStr, type = 'attendance') {
         try {
             const records = await getFullAttendance(dateStr);
@@ -596,10 +558,6 @@
         const date = document.getElementById('absDate').value;
         if (date) downloadAttendanceForDate(date, 'absentees');
     });
-
-    // ============================================================
-    //  INIT
-    // ============================================================
     (async function init() {
         showPage('page-main');
         await loadStudents();
