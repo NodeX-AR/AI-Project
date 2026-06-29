@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Smart Attendance System</title>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.1/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
@@ -17,12 +17,13 @@
         .menu-grid { display:flex; flex-direction:column; gap:14px; margin-top:12px; }
         .menu-btn { background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px 20px; font-size:18px; font-weight:600; color:#0f172a; cursor:pointer; transition:all .15s; text-align:left; display:flex; align-items:center; gap:12px; }
         .menu-btn:active { background:#eef2f6; transform:scale(0.98); }
-        .menu-btn .badge { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; margin-left:auto; }
+        .menu-btn .icon { font-size:28px; }
+        .menu-btn .badge { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; }
         .page-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
-        .back-btn { background:none; border:none; font-size:24px; cursor:pointer; padding:4px 8px; border-radius:12px; font-weight:700; }
+        .back-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:4px 8px; border-radius:12px; }
         .back-btn:active { background:#e2e8f0; }
         .page-title { font-size:20px; font-weight:700; flex:1; }
-        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:6px 16px; font-size:14px; font-weight:600; color:#1e293b; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:6px 16px; font-size:14px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:6px; }
         .action-btn:active { background:#cbd5e1; }
         .action-btn.primary { background:#0f172a; color:white; }
         .action-btn.primary:active { background:#1e293b; }
@@ -60,9 +61,9 @@
         .result-box.error { background:#fee2e2; border:1px solid #fca5a5; }
         .result-box .emoji { font-size:40px; display:block; margin-bottom:8px; }
         .hidden { display:none; }
-        .connection-status { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
-        .connection-status.online { background:#22c55e; }
-        .connection-status.offline { background:#ef4444; }
+        .badge-count { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; }
+        .flex { display:flex; gap:12px; }
+        .flex button { flex:1; }
     </style>
 </head>
 <body>
@@ -70,42 +71,49 @@
 <div class="app" id="app">
     <h1>Smart Attendance System</h1>
 
-    <!-- MAIN MENU -->
+    <!-- ========== MAIN MENU ========== -->
     <div id="page-main" class="page active">
         <div class="menu-grid">
             <button class="menu-btn" id="goFace">
-                <span>Face Recognition Attendance</span>
+                <span class="icon"></span>
+                <span class="label">Face Recognition Attendance</span>
                 <span class="badge">Live</span>
             </button>
             <button class="menu-btn" id="goAttendance">
-                <span>Today's Attendance</span>
+                <span class="icon"></span>
+                <span class="label">Today’s Attendance</span>
                 <span class="badge">View</span>
             </button>
             <button class="menu-btn" id="goAbsentees">
-                <span>Today's Absentees</span>
+                <span class="icon"></span>
+                <span class="label">Today’s Absentees</span>
                 <span class="badge">View</span>
             </button>
         </div>
         <div style="margin-top:24px; text-align:center; font-size:14px; color:#94a3b8;">
-            <span id="connIndicator"><span class="connection-status offline" id="connDot"></span> <span id="connText">Connecting...</span></span>
+            <span>Connected via GitHub proxy</span>
         </div>
     </div>
 
-    <!-- FACE RECOGNITION -->
+    <!-- ========== FACE RECOGNITION PAGE ========== -->
     <div id="page-face" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">&#8249;</button>
+            <button class="back-btn" data-back="main">‹</button>
             <span class="page-title">Face Recognition</span>
         </div>
+
         <div class="video-wrapper">
             <video id="video" autoplay playsinline></video>
         </div>
+
         <div class="cam-controls">
             <button class="cam-btn" id="startCam">Start Camera</button>
             <button class="cam-btn secondary" id="stopCam">Stop</button>
             <button class="cam-btn success" id="markAttendanceBtn">Mark Attendance</button>
         </div>
-        <div id="faceStatus" class="status-msg info">Camera off. Start camera, then click "Mark Attendance".</div>
+
+        <div id="faceStatus" class="status-msg info">Camera off. Start camera, then click “Mark Attendance”.</div>
+
         <div id="resultBox" class="result-box hidden">
             <span class="emoji" id="resultEmoji"></span>
             <div class="name" id="resultName">—</div>
@@ -113,33 +121,37 @@
         </div>
     </div>
 
-    <!-- ATTENDANCE -->
+    <!-- ========== ATTENDANCE PAGE ========== -->
     <div id="page-attendance" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">&#8249;</button>
+            <button class="back-btn" data-back="main">‹</button>
             <span class="page-title">Attendance</span>
-            <button class="action-btn primary" id="downloadAttendance">Download Excel</button>
+            <button class="action-btn primary" id="downloadAttendance">⬇ Excel</button>
         </div>
+
         <div class="date-picker">
             <input type="date" id="attDate" />
             <button id="loadAttendance">Load</button>
         </div>
+
         <div id="attendanceTableWrap" class="table-wrap">
             <div class="empty-msg">Select a date and click Load.</div>
         </div>
     </div>
 
-    <!-- ABSENTEES -->
+    <!-- ========== ABSENTEES PAGE ========== -->
     <div id="page-absentees" class="page">
         <div class="page-header">
-            <button class="back-btn" data-back="main">&#8249;</button>
+            <button class="back-btn" data-back="main">‹</button>
             <span class="page-title">Absentees</span>
-            <button class="action-btn primary" id="downloadAbsentees">Download Excel</button>
+            <button class="action-btn primary" id="downloadAbsentees">⬇ Excel</button>
         </div>
+
         <div class="date-picker">
             <input type="date" id="absDate" />
             <button id="loadAbsentees">Load</button>
         </div>
+
         <div id="absenteesList" class="table-wrap">
             <div class="empty-msg">Select a date and click Load.</div>
         </div>
@@ -149,69 +161,19 @@
 
 <script>
     // ============================================================
-    //  GITHUB API – proxy first, fallback to direct with token
+    //  GITHUB PROXY HELPERS (via Vercel)
     // ============================================================
-    let useDirectAPI = false;
-    let githubToken = localStorage.getItem('github_token') || '';
-    const OWNER = 'NodeX-AR';      // CHANGE TO YOUR USERNAME
-    const REPO = 'AI-Project';     // CHANGE TO YOUR REPO
-
     async function githubRequest(method, path, data = null) {
-        if (!useDirectAPI) {
-            try {
-                const res = await fetch('/api/github', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ path, method, data }),
-                });
-                if (res.status === 404) {
-                    useDirectAPI = true;
-                    if (!githubToken) {
-                        const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
-                        if (!t) throw new Error('Token required');
-                        githubToken = t;
-                        localStorage.setItem('github_token', githubToken);
-                    }
-                    return await directGitHubRequest(method, path, data);
-                }
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'HTTP ' + res.status);
-                }
-                return await res.json();
-            } catch (e) {
-                if (e.message.includes('404') || e.message.includes('Failed to fetch')) {
-                    useDirectAPI = true;
-                    if (!githubToken) {
-                        const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
-                        if (!t) throw new Error('Token required');
-                        githubToken = t;
-                        localStorage.setItem('github_token', githubToken);
-                    }
-                    return await directGitHubRequest(method, path, data);
-                }
-                throw e;
-            }
-        } else {
-            return await directGitHubRequest(method, path, data);
+        const response = await fetch('/api/github', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path, method, data }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP ${response.status}`);
         }
-    }
-
-    async function directGitHubRequest(method, path, data = null) {
-        const url = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path;
-        const headers = {
-            'Authorization': 'token ' + githubToken,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json',
-        };
-        const options = { method, headers };
-        if (data) options.body = JSON.stringify(data);
-        const res = await fetch(url, options);
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.message || 'HTTP ' + res.status);
-        }
-        return await res.json();
+        return await response.json();
     }
 
     async function getFileContent(path) {
@@ -228,11 +190,10 @@
         }
     }
 
-    async function updateFile(path, content, message) {
-        message = message || 'Update file';
+    async function updateFile(path, content, message = 'Update file') {
         const existing = await getFileContent(path);
         const payload = {
-            message: message,
+            message,
             content: btoa(content),
             sha: existing ? existing.sha : undefined,
         };
@@ -242,7 +203,7 @@
     // ============================================================
     //  STUDENTS DATA (multi‑descriptor)
     // ============================================================
-    let students = [];
+    let students = [];      // [{ name, descriptors: [Float32Array, ...] }]
     let studentNames = [];
 
     async function loadStudents() {
@@ -255,19 +216,20 @@
                 return;
             }
             const data = JSON.parse(file.content);
-            students = data.map(function(s) {
-                var descriptors;
+            students = data.map(s => {
+                let descriptors;
                 if (s.descriptors && Array.isArray(s.descriptors)) {
-                    descriptors = s.descriptors.map(function(d) { return new Float32Array(d); });
+                    descriptors = s.descriptors.map(d => new Float32Array(d));
                 } else if (s.descriptor) {
+                    // old format – single descriptor
                     descriptors = [new Float32Array(s.descriptor)];
                 } else {
                     throw new Error('Missing descriptors or descriptor');
                 }
-                return { name: s.name, descriptors: descriptors };
+                return { name: s.name, descriptors };
             });
-            studentNames = students.map(function(s) { return s.name; });
-            console.log('Loaded ' + students.length + ' students.');
+            studentNames = students.map(s => s.name);
+            console.log(`Loaded ${students.length} students.`);
         } catch (e) {
             console.error('Failed to load students:', e);
             students = [];
@@ -283,17 +245,17 @@
     }
 
     function getCsvPath(dateStr) {
-        return 'register/' + dateStr + '.csv';
+        return `register/${dateStr}.csv`;
     }
 
     async function loadAttendanceCsv(dateStr) {
         try {
-            var file = await getFileContent(getCsvPath(dateStr));
+            const file = await getFileContent(getCsvPath(dateStr));
             if (!file) return null;
-            var lines = file.content.trim().split('\n');
-            return lines.map(function(line) {
-                var parts = line.split(',');
-                return { name: parts[0].trim(), status: parts[1].trim() };
+            const lines = file.content.trim().split('\n');
+            return lines.map(line => {
+                const [name, status] = line.split(',');
+                return { name: name.trim(), status: status.trim() };
             });
         } catch (e) {
             return null;
@@ -301,20 +263,19 @@
     }
 
     async function getFullAttendance(dateStr) {
-        var records = await loadAttendanceCsv(dateStr);
-        var allNames = await getAllStudentNames();
+        let records = await loadAttendanceCsv(dateStr);
+        const allNames = await getAllStudentNames();
         if (!records) {
-            records = allNames.map(function(name) { return { name: name, status: 'Absent' }; });
+            records = allNames.map(name => ({ name, status: 'Absent' }));
         } else {
-            var existing = new Set(records.map(function(r) { return r.name; }));
-            for (var i = 0; i < allNames.length; i++) {
-                var name = allNames[i];
+            const existing = new Set(records.map(r => r.name));
+            for (const name of allNames) {
                 if (!existing.has(name)) {
-                    records.push({ name: name, status: 'Absent' });
+                    records.push({ name, status: 'Absent' });
                 }
             }
         }
-        records.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        records.sort((a, b) => a.name.localeCompare(b.name));
         return records;
     }
 
@@ -327,51 +288,44 @@
     //  PAGE NAVIGATION
     // ============================================================
     function showPage(pageId) {
-        var pages = document.querySelectorAll('.page');
-        for (var i = 0; i < pages.length; i++) {
-            pages[i].classList.remove('active');
-        }
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
     }
 
-    var backBtns = document.querySelectorAll('[data-back]');
-    for (var i = 0; i < backBtns.length; i++) {
-        backBtns[i].addEventListener('click', function() {
-            showPage('page-main');
-        });
-    }
+    document.querySelectorAll('[data-back]').forEach(btn => {
+        btn.addEventListener('click', () => showPage('page-main'));
+    });
 
-    document.getElementById('goFace').addEventListener('click', function() {
+    document.getElementById('goFace').addEventListener('click', () => {
         showPage('page-face');
         initFaceRecognition();
     });
-    document.getElementById('goAttendance').addEventListener('click', function() {
+    document.getElementById('goAttendance').addEventListener('click', () => {
         showPage('page-attendance');
-        var today = getTodayStr();
+        const today = getTodayStr();
         document.getElementById('attDate').value = today;
         loadAttendance(today);
     });
-    document.getElementById('goAbsentees').addEventListener('click', function() {
+    document.getElementById('goAbsentees').addEventListener('click', () => {
         showPage('page-absentees');
-        var today = getTodayStr();
+        const today = getTodayStr();
         document.getElementById('absDate').value = today;
         loadAbsentees(today);
     });
 
     // ============================================================
-    //  FACE RECOGNITION – One‑Shot Capture
+    //  FACE RECOGNITION – Simple One‑Shot Capture
     // ============================================================
-    var faceModelsLoaded = false;
-    var cameraStream = null;
-    var video = document.getElementById('video');
-    var faceStatus = document.getElementById('faceStatus');
-    var resultBox = document.getElementById('resultBox');
-    var resultEmoji = document.getElementById('resultEmoji');
-    var resultName = document.getElementById('resultName');
-    var resultSub = document.getElementById('resultSub');
+    let faceModelsLoaded = false;
+    let cameraStream = null;
+    const video = document.getElementById('video');
+    const faceStatus = document.getElementById('faceStatus');
+    const resultBox = document.getElementById('resultBox');
+    const resultEmoji = document.getElementById('resultEmoji');
+    const resultName = document.getElementById('resultName');
+    const resultSub = document.getElementById('resultSub');
 
-    function setFaceStatus(msg, type) {
-        type = type || 'info';
+    function setFaceStatus(msg, type = 'info') {
         faceStatus.textContent = msg;
         faceStatus.className = 'status-msg ' + type;
     }
@@ -391,19 +345,20 @@
     async function loadFaceModels() {
         if (faceModelsLoaded) return true;
         try {
-            var MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
             setFaceStatus('Loading face models...', 'info');
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             faceModelsLoaded = true;
             setFaceStatus('Models loaded. Start camera.', 'success');
             return true;
         } catch (e) {
+            // Fallback
             try {
-                var FALLBACK_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
-                setFaceStatus('Trying fallback model source...', 'info');
-                await faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK_URL);
+                const FALLBACK_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
+                setFaceStatus('⏳ Trying fallback model source...', 'info');
+                await faceapi.nets.ssdMobilenetv1.loadFromUri(FALLBACK_URL);
                 await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL);
                 await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL);
                 faceModelsLoaded = true;
@@ -422,7 +377,7 @@
         if (students.length === 0) {
             setFaceStatus('No students loaded. Please create students.json.', 'error');
         } else {
-            setFaceStatus('Loaded ' + students.length + ' students. Start camera.', 'info');
+            setFaceStatus(`Loaded ${students.length} students. Start camera.`, 'info');
         }
         hideResult();
     }
@@ -442,7 +397,7 @@
 
     function stopCamera() {
         if (cameraStream) {
-            cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            cameraStream.getTracks().forEach(t => t.stop());
             cameraStream = null;
             video.srcObject = null;
             setFaceStatus('Camera stopped.', 'info');
@@ -451,20 +406,18 @@
     }
 
     function findBestMatch(descriptor) {
-        var bestDist = Infinity;
-        var bestStudent = null;
-        for (var i = 0; i < students.length; i++) {
-            var s = students[i];
-            for (var j = 0; j < s.descriptors.length; j++) {
-                var d = s.descriptors[j];
-                var dist = faceapi.euclideanDistance(descriptor, d);
+        let bestDist = Infinity;
+        let bestStudent = null;
+        for (const student of students) {
+            for (const desc of student.descriptors) {
+                const dist = faceapi.euclideanDistance(descriptor, desc);
                 if (dist < bestDist) {
                     bestDist = dist;
-                    bestStudent = s;
+                    bestStudent = student;
                 }
             }
         }
-        var THRESHOLD = 0.6;
+        const THRESHOLD = 0.6;
         if (bestDist < THRESHOLD) {
             return { student: bestStudent, distance: bestDist };
         }
@@ -473,7 +426,7 @@
 
     async function markAttendance() {
         if (!cameraStream || video.readyState < 2) {
-            setFaceStatus('Start camera first.', 'error');
+            setFaceStatus('⚠️ Start camera first.', 'error');
             return;
         }
 
@@ -481,58 +434,57 @@
         hideResult();
 
         try {
-            var detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+            // Detect face in current frame
+            const detection = await faceapi.detectSingleFace(video, new faceapi.SsdMobilenetv1Options())
                 .withFaceLandmarks()
                 .withFaceDescriptor();
 
             if (!detection) {
-                showResult('', 'No face detected', 'Please look at the camera and try again.', 'error');
-                setFaceStatus('No face in frame.', 'error');
+                showResult('No face detected', 'Please look at the camera and try again.', 'error');
+                setFaceStatus(' No face in frame.', 'error');
                 return;
             }
 
-            var descriptor = detection.descriptor;
-            var match = findBestMatch(descriptor);
+            const descriptor = detection.descriptor;
+            const match = findBestMatch(descriptor);
 
             if (!match) {
-                showResult('', 'Not recognised', 'You are not in the system. Please contact admin.', 'error');
-                setFaceStatus('Unknown person.', 'error');
+                showResult('Not recognised', 'You are not in the system. Please contact admin.', 'error');
+                setFaceStatus(' Unknown person.', 'error');
                 return;
             }
 
-            var name = match.student.name;
-            var confidence = (1 - match.distance) * 100;
+            const name = match.student.name;
+            const confidence = (1 - match.distance) * 100;
 
-            var today = getTodayStr();
-            var records = await getFullAttendance(today);
-            var found = null;
-            for (var i = 0; i < records.length; i++) {
-                if (records[i].name === name) {
-                    found = records[i];
-                    break;
-                }
-            }
+            // Mark attendance
+            const today = getTodayStr();
+            const records = await getFullAttendance(today);
+            const found = records.find(r => r.name === name);
             if (found && found.status === 'Present') {
-                showResult('', name, 'Already present today (confidence ' + confidence.toFixed(1) + '%).', 'success');
-                setFaceStatus(name + ' already present.', 'info');
+                showResult(name, `You are already marked present today (confidence ${confidence.toFixed(1)}%).`, 'success');
+                setFaceStatus(` ${name} already present.`, 'info');
                 return;
             }
 
-            var updated = records.map(function(r) {
+            const updated = records.map(r => {
                 if (r.name === name) r.status = 'Present';
                 return r;
             });
-            var csvContent = updated.map(function(r) { return r.name + ',' + r.status; }).join('\n');
-            await updateFile(getCsvPath(today), csvContent, 'Mark ' + name + ' present');
+            const csvContent = updated.map(r => `${r.name},${r.status}`).join('\n');
+            await updateFile(getCsvPath(today), csvContent, `Mark ${name} present`);
 
-            showResult('', name, 'Attendance marked! You may go now. (confidence ' + confidence.toFixed(1) + '%)', 'success');
-            setFaceStatus(name + ' marked present.', 'success');
+            showResult(name, `Your attendance is marked! You may go now. (confidence ${confidence.toFixed(1)}%)`, 'success');
+            setFaceStatus(` ${name} marked present!`, 'success');
         } catch (err) {
-            showResult('', 'Error', err.message, 'error');
-            setFaceStatus('Error: ' + err.message, 'error');
+            showResult('Error', err.message, 'error');
+            setFaceStatus(' Error: ' + err.message, 'error');
         }
     }
 
+    // ============================================================
+    //  FACE PAGE EVENT LISTENERS
+    // ============================================================
     document.getElementById('startCam').addEventListener('click', startCamera);
     document.getElementById('stopCam').addEventListener('click', stopCamera);
     document.getElementById('markAttendanceBtn').addEventListener('click', markAttendance);
@@ -541,121 +493,102 @@
     //  VIEW ATTENDANCE / ABSENTEES
     // ============================================================
     async function loadAttendance(dateStr) {
-        var wrap = document.getElementById('attendanceTableWrap');
+        const wrap = document.getElementById('attendanceTableWrap');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
         try {
-            var records = await getFullAttendance(dateStr);
+            const records = await getFullAttendance(dateStr);
             if (!records || records.length === 0) {
                 wrap.innerHTML = '<div class="empty-msg">No records.</div>';
                 return;
             }
-            var html = '<table><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>';
-            var present = 0;
-            for (var i = 0; i < records.length; i++) {
-                var r = records[i];
-                var isPresent = (r.status === 'Present');
+            let html = `<table><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>`;
+            let present = 0;
+            for (const r of records) {
+                const isPresent = r.status === 'Present';
                 if (isPresent) present++;
-                html += '<tr><td>' + r.name + '</td><td class="' + (isPresent ? 'status-present' : 'status-absent') + '">' + r.status + '</td></tr>';
+                html += `<tr><td>${r.name}</td><td class="${isPresent ? 'status-present' : 'status-absent'}">${r.status}</td></tr>`;
             }
-            html += '</tbody></table>';
+            html += `</tbody></table>`;
             wrap.innerHTML = html;
-            var summary = document.createElement('div');
+            const summary = document.createElement('div');
             summary.style.marginTop = '12px';
             summary.style.fontWeight = '600';
-            summary.textContent = 'Present: ' + present + '  |  Absent: ' + (records.length - present);
+            summary.textContent = `Present: ${present}  |  Absent: ${records.length - present}`;
             wrap.parentNode.insertBefore(summary, wrap.nextSibling);
         } catch (e) {
-            wrap.innerHTML = '<div class="empty-msg">Error: ' + e.message + '</div>';
+            wrap.innerHTML = `<div class="empty-msg">Error: ${e.message}</div>`;
         }
     }
 
     async function loadAbsentees(dateStr) {
-        var wrap = document.getElementById('absenteesList');
+        const wrap = document.getElementById('absenteesList');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
         try {
-            var records = await getFullAttendance(dateStr);
-            var absent = records.filter(function(r) { return r.status === 'Absent'; });
+            const records = await getFullAttendance(dateStr);
+            const absent = records.filter(r => r.status === 'Absent');
             if (absent.length === 0) {
-                wrap.innerHTML = '<div class="empty-msg">Everyone is present!</div>';
+                wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>';
                 return;
             }
-            var html = '<table><thead><tr><th>Name</th></tr></thead><tbody>';
-            for (var i = 0; i < absent.length; i++) {
-                html += '<tr><td>' + absent[i].name + '</td></tr>';
-            }
-            html += '</tbody></table>';
+            let html = `<table><thead><tr><th>Name</th></tr></thead><tbody>`;
+            for (const r of absent) html += `<tr><td>${r.name}</td></tr>`;
+            html += `</tbody></table>`;
             wrap.innerHTML = html;
         } catch (e) {
-            wrap.innerHTML = '<div class="empty-msg">Error: ' + e.message + '</div>';
+            wrap.innerHTML = `<div class="empty-msg">Error: ${e.message}</div>`;
         }
     }
 
-    document.getElementById('loadAttendance').addEventListener('click', function() {
-        var date = document.getElementById('attDate').value;
+    document.getElementById('loadAttendance').addEventListener('click', () => {
+        const date = document.getElementById('attDate').value;
         if (date) loadAttendance(date);
     });
-    document.getElementById('loadAbsentees').addEventListener('click', function() {
-        var date = document.getElementById('absDate').value;
+    document.getElementById('loadAbsentees').addEventListener('click', () => {
+        const date = document.getElementById('absDate').value;
         if (date) loadAbsentees(date);
     });
 
     // ============================================================
     //  DOWNLOAD EXCEL
     // ============================================================
-    async function downloadAttendanceForDate(dateStr, type) {
-        type = type || 'attendance';
+    async function downloadAttendanceForDate(dateStr, type = 'attendance') {
         try {
-            var records = await getFullAttendance(dateStr);
-            var data;
+            const records = await getFullAttendance(dateStr);
+            let data;
             if (type === 'absentees') {
-                data = records.filter(function(r) { return r.status === 'Absent'; }).map(function(r) { return { Name: r.name }; });
+                data = records.filter(r => r.status === 'Absent').map(r => ({ Name: r.name }));
             } else {
-                data = records.map(function(r) { return { Name: r.name, Status: r.status }; });
+                data = records.map(r => ({ Name: r.name, Status: r.status }));
             }
-            var wb = XLSX.utils.book_new();
-            var ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-            XLSX.writeFile(wb, type + '_' + dateStr + '.xlsx');
+            XLSX.writeFile(wb, `${type}_${dateStr}.xlsx`);
         } catch (e) {
             alert('Download failed: ' + e.message);
         }
     }
 
-    document.getElementById('downloadAttendance').addEventListener('click', function() {
-        var date = document.getElementById('attDate').value;
+    document.getElementById('downloadAttendance').addEventListener('click', () => {
+        const date = document.getElementById('attDate').value;
         if (date) downloadAttendanceForDate(date, 'attendance');
     });
-    document.getElementById('downloadAbsentees').addEventListener('click', function() {
-        var date = document.getElementById('absDate').value;
+    document.getElementById('downloadAbsentees').addEventListener('click', () => {
+        const date = document.getElementById('absDate').value;
         if (date) downloadAttendanceForDate(date, 'absentees');
     });
-
-    // ============================================================
-    //  CONNECTION CHECK
-    // ============================================================
-    async function checkConnection() {
-        var dot = document.getElementById('connDot');
-        var text = document.getElementById('connText');
-        try {
-            await getFileContent('students.json');
-            dot.className = 'connection-status online';
-            text.textContent = 'Connected';
-        } catch (e) {
-            dot.className = 'connection-status offline';
-            text.textContent = 'Offline - check token';
-        }
-    }
 
     // ============================================================
     //  INIT
     // ============================================================
     (async function init() {
+        // Show main page
         showPage('page-main');
+        // Load students and set today's dates
         await loadStudents();
-        var today = getTodayStr();
+        const today = getTodayStr();
         document.getElementById('attDate').value = today;
         document.getElementById('absDate').value = today;
-        checkConnection();
         console.log('App ready.');
     })();
 </script>
