@@ -3,157 +3,144 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Smart Attendance System</title>
+    <title>Smart Attendance</title>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
+        /* Minimal, mobile‑first styles */
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
-        .app { max-width:700px; width:100%; background:white; border-radius:28px; box-shadow:0 20px 60px rgba(0,0,0,0.08); padding:24px 20px 32px; }
-        h1 { font-size:24px; font-weight:700; text-align:center; margin-bottom:20px; color:#0f172a; }
-        .page { display:none; animation:fade .25s ease; }
+        body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:12px; }
+        .app { max-width:600px; width:100%; background:white; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.06); padding:20px 16px 28px; }
+        h1 { font-size:22px; font-weight:700; text-align:center; margin-bottom:16px; color:#0f172a; }
+        .page { display:none; }
         .page.active { display:block; }
-        @keyframes fade { 0%{opacity:0;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
-        .menu-grid { display:flex; flex-direction:column; gap:14px; margin-top:12px; }
-        .menu-btn { background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px 20px; font-size:18px; font-weight:600; color:#0f172a; cursor:pointer; transition:all .15s; text-align:left; display:flex; align-items:center; gap:12px; }
-        .menu-btn:active { background:#eef2f6; transform:scale(0.98); }
-        .menu-btn .icon { font-size:28px; }
-        .menu-btn .badge { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; }
-        .page-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
-        .back-btn { background:none; border:none; font-size:28px; cursor:pointer; padding:4px 8px; border-radius:12px; }
-        .back-btn:active { background:#e2e8f0; }
-        .page-title { font-size:20px; font-weight:700; flex:1; }
-        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:6px 16px; font-size:14px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:6px; }
+        .menu-grid { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+        .menu-btn { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px 16px; font-size:16px; font-weight:600; color:#0f172a; cursor:pointer; display:flex; align-items:center; gap:10px; }
+        .menu-btn:active { background:#eef2f6; }
+        .menu-btn .icon { font-size:24px; }
+        .menu-btn .badge { background:#e2e8f0; border-radius:20px; padding:0 12px; font-size:13px; color:#475569; }
+        .page-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+        .back-btn { background:none; border:none; font-size:24px; cursor:pointer; padding:0 4px; }
+        .page-title { font-size:18px; font-weight:700; flex:1; }
+        .action-btn { background:#eef2f6; border:none; border-radius:30px; padding:4px 14px; font-size:13px; font-weight:600; cursor:pointer; }
         .action-btn:active { background:#cbd5e1; }
         .action-btn.primary { background:#0f172a; color:white; }
-        .action-btn.primary:active { background:#1e293b; }
-        .video-wrapper { background:#f1f5f9; border-radius:20px; overflow:hidden; margin:12px 0 16px; position:relative; }
+        .video-wrapper { background:#f1f5f9; border-radius:16px; overflow:hidden; margin:8px 0 12px; }
         #video { width:100%; display:block; aspect-ratio:4/3; object-fit:cover; background:#0f172a; }
-        .cam-controls { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin:12px 0 8px; }
-        .cam-btn { background:#0f172a; border:none; border-radius:40px; padding:12px 28px; color:white; font-weight:600; font-size:16px; cursor:pointer; flex:1 1 auto; min-width:120px; }
+        .cam-controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0; }
+        .cam-btn { background:#0f172a; border:none; border-radius:30px; padding:10px 20px; color:white; font-weight:600; font-size:15px; cursor:pointer; flex:1 1 auto; min-width:90px; }
         .cam-btn:active { background:#1e293b; }
         .cam-btn.secondary { background:#e2e8f0; color:#0f172a; }
-        .cam-btn.secondary:active { background:#cbd5e1; }
         .cam-btn.success { background:#16a34a; }
-        .cam-btn.success:active { background:#15803d; }
-        .status-msg { text-align:center; padding:12px; font-weight:500; border-radius:12px; margin:8px 0; }
+        .status-msg { text-align:center; padding:10px; font-weight:500; border-radius:12px; margin:8px 0; font-size:15px; }
         .status-msg.success { background:#dcfce7; color:#166534; }
         .status-msg.error { background:#fee2e2; color:#991b1b; }
         .status-msg.info { background:#e0f2fe; color:#0369a1; }
         .status-msg.warning { background:#fef3c7; color:#92400e; }
-        .table-wrap { overflow-x:auto; margin:12px 0 16px; border-radius:16px; border:1px solid #e2e8f0; }
-        table { width:100%; border-collapse:collapse; font-size:15px; }
-        th { background:#f8fafc; text-align:left; padding:12px 16px; font-weight:600; border-bottom:1px solid #e2e8f0; }
-        td { padding:10px 16px; border-bottom:1px solid #f1f5f9; }
+        .table-wrap { overflow-x:auto; margin:8px 0 12px; border-radius:12px; border:1px solid #e2e8f0; }
+        table { width:100%; border-collapse:collapse; font-size:14px; }
+        th { background:#f8fafc; text-align:left; padding:8px 12px; border-bottom:1px solid #e2e8f0; }
+        td { padding:8px 12px; border-bottom:1px solid #f1f5f9; }
         tr:last-child td { border-bottom:none; }
         .status-present { color:#16a34a; font-weight:600; }
         .status-absent { color:#dc2626; font-weight:600; }
-        .empty-msg { text-align:center; padding:32px 16px; color:#64748b; }
-        .date-picker { display:flex; gap:10px; align-items:center; margin:8px 0 16px; flex-wrap:wrap; }
-        .date-picker input[type="date"] { padding:10px 14px; border:1px solid #d1d5db; border-radius:30px; font-size:16px; background:white; flex:1 1 180px; }
-        .date-picker button { background:#0f172a; border:none; border-radius:30px; padding:10px 22px; color:white; font-weight:600; font-size:15px; cursor:pointer; }
+        .empty-msg { text-align:center; padding:24px 16px; color:#64748b; font-size:15px; }
+        .date-picker { display:flex; gap:8px; align-items:center; margin:8px 0 12px; flex-wrap:wrap; }
+        .date-picker input[type="date"] { padding:8px 12px; border:1px solid #d1d5db; border-radius:30px; font-size:15px; background:white; flex:1 1 150px; }
+        .date-picker button { background:#0f172a; border:none; border-radius:30px; padding:8px 16px; color:white; font-weight:600; font-size:14px; cursor:pointer; }
         .date-picker button:active { background:#1e293b; }
-        .mt-8 { margin-top:8px; }
-        .result-box { padding:16px; border-radius:16px; margin:12px 0; text-align:center; }
-        .result-box .name { font-size:28px; font-weight:700; }
-        .result-box .sub { font-size:16px; color:#475569; margin-top:4px; }
+        .result-box { padding:14px; border-radius:14px; margin:10px 0; text-align:center; }
+        .result-box .name { font-size:24px; font-weight:700; }
+        .result-box .sub { font-size:15px; color:#475569; margin-top:2px; }
         .result-box.success { background:#dcfce7; border:1px solid #86efac; }
         .result-box.error { background:#fee2e2; border:1px solid #fca5a5; }
-        .result-box .emoji { font-size:40px; display:block; margin-bottom:8px; }
+        .result-box .emoji { font-size:36px; display:block; margin-bottom:4px; }
         .hidden { display:none; }
-        .badge-count { background:#e2e8f0; border-radius:30px; padding:2px 12px; font-size:14px; font-weight:500; color:#475569; }
-        .flex { display:flex; gap:12px; }
-        .flex button { flex:1; }
+        .connection-status { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+        .connection-status.online { background:#22c55e; }
+        .connection-status.offline { background:#ef4444; }
     </style>
 </head>
 <body>
 
 <div class="app" id="app">
-    <h1>Smart Attendance System</h1>
+    <h1>📋 Smart Attendance</h1>
 
-    <!-- ========== MAIN MENU ========== -->
+    <!-- ===== MAIN MENU ===== -->
     <div id="page-main" class="page active">
         <div class="menu-grid">
             <button class="menu-btn" id="goFace">
-                <span class="icon"></span>
-                <span class="label">Face Recognition Attendance</span>
+                <span class="icon">📸</span>
+                <span class="label">Face Recognition</span>
                 <span class="badge">Live</span>
             </button>
             <button class="menu-btn" id="goAttendance">
-                <span class="icon"></span>
+                <span class="icon">📅</span>
                 <span class="label">Today’s Attendance</span>
                 <span class="badge">View</span>
             </button>
             <button class="menu-btn" id="goAbsentees">
-                <span class="icon"></span>
+                <span class="icon">🚫</span>
                 <span class="label">Today’s Absentees</span>
                 <span class="badge">View</span>
             </button>
         </div>
-        <div style="margin-top:24px; text-align:center; font-size:14px; color:#94a3b8;">
-            <span>Connected via GitHub proxy</span>
+        <div style="margin-top:16px; text-align:center; font-size:13px; color:#94a3b8;">
+            <span id="connIndicator"><span class="connection-status offline" id="connDot"></span> <span id="connText">Connecting...</span></span>
         </div>
     </div>
 
-    <!-- ========== FACE RECOGNITION PAGE ========== -->
+    <!-- ===== FACE RECOGNITION ===== -->
     <div id="page-face" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">Face Recognition</span>
+            <span class="page-title">📸 Face Recognition</span>
         </div>
-
         <div class="video-wrapper">
             <video id="video" autoplay playsinline></video>
         </div>
-
         <div class="cam-controls">
-            <button class="cam-btn" id="startCam">Start Camera</button>
-            <button class="cam-btn secondary" id="stopCam">Stop</button>
-            <button class="cam-btn success" id="markAttendanceBtn">Mark Attendance</button>
+            <button class="cam-btn" id="startCam">▶ Start</button>
+            <button class="cam-btn secondary" id="stopCam">⏹ Stop</button>
+            <button class="cam-btn success" id="markAttendanceBtn">✅ Mark</button>
         </div>
-
-        <div id="faceStatus" class="status-msg info">Camera off. Start camera, then click “Mark Attendance”.</div>
-
+        <div id="faceStatus" class="status-msg info">Start camera, then tap Mark.</div>
         <div id="resultBox" class="result-box hidden">
-            <span class="emoji" id="resultEmoji"></span>
+            <span class="emoji" id="resultEmoji">✅</span>
             <div class="name" id="resultName">—</div>
             <div class="sub" id="resultSub"></div>
         </div>
     </div>
 
-    <!-- ========== ATTENDANCE PAGE ========== -->
+    <!-- ===== ATTENDANCE ===== -->
     <div id="page-attendance" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">Attendance</span>
+            <span class="page-title">📅 Attendance</span>
             <button class="action-btn primary" id="downloadAttendance">⬇ Excel</button>
         </div>
-
         <div class="date-picker">
             <input type="date" id="attDate" />
             <button id="loadAttendance">Load</button>
         </div>
-
         <div id="attendanceTableWrap" class="table-wrap">
-            <div class="empty-msg">Select a date and click Load.</div>
+            <div class="empty-msg">Select date and Load.</div>
         </div>
     </div>
 
-    <!-- ========== ABSENTEES PAGE ========== -->
+    <!-- ===== ABSENTEES ===== -->
     <div id="page-absentees" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
-            <span class="page-title">Absentees</span>
+            <span class="page-title">🚫 Absentees</span>
             <button class="action-btn primary" id="downloadAbsentees">⬇ Excel</button>
         </div>
-
         <div class="date-picker">
             <input type="date" id="absDate" />
             <button id="loadAbsentees">Load</button>
         </div>
-
         <div id="absenteesList" class="table-wrap">
-            <div class="empty-msg">Select a date and click Load.</div>
+            <div class="empty-msg">Select date and Load.</div>
         </div>
     </div>
 
@@ -161,19 +148,19 @@
 
 <script>
     // ============================================================
-    //  GITHUB PROXY HELPERS (via Vercel)
+    //  ONLY use the Vercel proxy – no fallback (assumes /api/github exists)
     // ============================================================
     async function githubRequest(method, path, data = null) {
-        const response = await fetch('/api/github', {
+        const res = await fetch('/api/github', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path, method, data }),
         });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP ${response.status}`);
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || `HTTP ${res.status}`);
         }
-        return await response.json();
+        return await res.json();
     }
 
     async function getFileContent(path) {
@@ -190,7 +177,7 @@
         }
     }
 
-    async function updateFile(path, content, message = 'Update file') {
+    async function updateFile(path, content, message = 'Update') {
         const existing = await getFileContent(path);
         const payload = {
             message,
@@ -201,95 +188,73 @@
     }
 
     // ============================================================
-    //  STUDENTS DATA (multi‑descriptor)
+    //  STUDENTS (multi‑descriptor format)
     // ============================================================
-    let students = [];      // [{ name, descriptors: [Float32Array, ...] }]
+    let students = [];
     let studentNames = [];
 
     async function loadStudents() {
         try {
             const file = await getFileContent('students.json');
-            if (!file) {
-                console.warn('students.json not found');
-                students = [];
-                studentNames = [];
-                return;
-            }
+            if (!file) { students = []; studentNames = []; return; }
             const data = JSON.parse(file.content);
             students = data.map(s => {
                 let descriptors;
-                if (s.descriptors && Array.isArray(s.descriptors)) {
+                if (s.descriptors) {
                     descriptors = s.descriptors.map(d => new Float32Array(d));
                 } else if (s.descriptor) {
-                    // old format – single descriptor
                     descriptors = [new Float32Array(s.descriptor)];
                 } else {
-                    throw new Error('Missing descriptors or descriptor');
+                    throw new Error('No descriptors');
                 }
                 return { name: s.name, descriptors };
             });
             studentNames = students.map(s => s.name);
-            console.log(`Loaded ${students.length} students.`);
         } catch (e) {
-            console.error('Failed to load students:', e);
+            console.error(e);
             students = [];
             studentNames = [];
         }
     }
 
     // ============================================================
-    //  ATTENDANCE CSV HELPERS
+    //  ATTENDANCE HELPERS
     // ============================================================
-    function getTodayStr() {
-        return new Date().toISOString().split('T')[0];
-    }
-
-    function getCsvPath(dateStr) {
-        return `register/${dateStr}.csv`;
-    }
+    function todayStr() { return new Date().toISOString().split('T')[0]; }
+    function csvPath(dateStr) { return `register/${dateStr}.csv`; }
 
     async function loadAttendanceCsv(dateStr) {
         try {
-            const file = await getFileContent(getCsvPath(dateStr));
+            const file = await getFileContent(csvPath(dateStr));
             if (!file) return null;
             const lines = file.content.trim().split('\n');
             return lines.map(line => {
                 const [name, status] = line.split(',');
                 return { name: name.trim(), status: status.trim() };
             });
-        } catch (e) {
-            return null;
-        }
+        } catch { return null; }
     }
 
     async function getFullAttendance(dateStr) {
         let records = await loadAttendanceCsv(dateStr);
         const allNames = await getAllStudentNames();
-        if (!records) {
-            records = allNames.map(name => ({ name, status: 'Absent' }));
-        } else {
-            const existing = new Set(records.map(r => r.name));
-            for (const name of allNames) {
-                if (!existing.has(name)) {
-                    records.push({ name, status: 'Absent' });
-                }
-            }
+        if (!records) records = allNames.map(name => ({ name, status: 'Absent' }));
+        else {
+            const exist = new Set(records.map(r => r.name));
+            for (const name of allNames) if (!exist.has(name)) records.push({ name, status: 'Absent' });
         }
-        records.sort((a, b) => a.name.localeCompare(b.name));
+        records.sort((a,b) => a.name.localeCompare(b.name));
         return records;
     }
 
-    async function getAllStudentNames() {
-        await loadStudents();
-        return studentNames;
-    }
+    async function getAllStudentNames() { await loadStudents(); return studentNames; }
 
     // ============================================================
-    //  PAGE NAVIGATION
+    //  NAVIGATION
     // ============================================================
-    function showPage(pageId) {
+    function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+        document.getElementById(id).classList.add('active');
     }
 
     document.querySelectorAll('[data-back]').forEach(btn => {
@@ -298,23 +263,39 @@
 
     document.getElementById('goFace').addEventListener('click', () => {
         showPage('page-face');
-        initFaceRecognition();
+        initFace();
     });
     document.getElementById('goAttendance').addEventListener('click', () => {
         showPage('page-attendance');
-        const today = getTodayStr();
-        document.getElementById('attDate').value = today;
-        loadAttendance(today);
+        const d = todayStr();
+        document.getElementById('attDate').value = d;
+        loadAttendance(d);
     });
     document.getElementById('goAbsentees').addEventListener('click', () => {
         showPage('page-absentees');
-        const today = getTodayStr();
-        document.getElementById('absDate').value = today;
-        loadAbsentees(today);
+        const d = todayStr();
+        document.getElementById('absDate').value = d;
+        loadAbsentees(d);
     });
 
     // ============================================================
-    //  FACE RECOGNITION – Simple One‑Shot Capture
+    //  CONNECTION CHECK
+    // ============================================================
+    async function checkConnection() {
+        const dot = document.getElementById('connDot');
+        const text = document.getElementById('connText');
+        try {
+            await getFileContent('students.json');
+            dot.className = 'connection-status online';
+            text.textContent = 'Connected';
+        } catch {
+            dot.className = 'connection-status offline';
+            text.textContent = 'Offline';
+        }
+    }
+
+    // ============================================================
+    //  FACE RECOGNITION – LIGHTWEIGHT (Tiny Detector)
     // ============================================================
     let faceModelsLoaded = false;
     let cameraStream = null;
@@ -338,47 +319,42 @@
         resultSub.textContent = sub;
     }
 
-    function hideResult() {
-        resultBox.classList.add('hidden');
-    }
+    function hideResult() { resultBox.classList.add('hidden'); }
 
     async function loadFaceModels() {
         if (faceModelsLoaded) return true;
         try {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
-            setFaceStatus('Loading face models...', 'info');
-            await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+            setFaceStatus('Loading models...', 'info');
+            // Tiny detector is faster
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
             faceModelsLoaded = true;
-            setFaceStatus('Models loaded. Start camera.', 'success');
+            setFaceStatus('Models ready.', 'success');
             return true;
         } catch (e) {
-            // Fallback
             try {
-                const FALLBACK_URL = 'https://justadudewhohacks.github.io/face-api.js/models/';
-                setFaceStatus('⏳ Trying fallback model source...', 'info');
-                await faceapi.nets.ssdMobilenetv1.loadFromUri(FALLBACK_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK_URL);
+                const FALLBACK = 'https://justadudewhohacks.github.io/face-api.js/models/';
+                setFaceStatus('Trying fallback...', 'info');
+                await faceapi.nets.tinyFaceDetector.loadFromUri(FALLBACK);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(FALLBACK);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(FALLBACK);
                 faceModelsLoaded = true;
-                setFaceStatus('Models loaded (fallback).', 'success');
+                setFaceStatus('Models ready (fallback).', 'success');
                 return true;
             } catch (e2) {
-                setFaceStatus('Failed to load models. Check internet.', 'error');
+                setFaceStatus('❌ Failed to load models.', 'error');
                 return false;
             }
         }
     }
 
-    async function initFaceRecognition() {
+    async function initFace() {
         await loadFaceModels();
         await loadStudents();
-        if (students.length === 0) {
-            setFaceStatus('No students loaded. Please create students.json.', 'error');
-        } else {
-            setFaceStatus(`Loaded ${students.length} students. Start camera.`, 'info');
-        }
+        if (students.length === 0) setFaceStatus('⚠️ No students found.', 'error');
+        else setFaceStatus(`📚 ${students.length} students. Start camera.`, 'info');
         hideResult();
     }
 
@@ -388,11 +364,9 @@
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
             video.srcObject = cameraStream;
             await video.play();
-            setFaceStatus('Camera ready. Click "Mark Attendance".', 'info');
+            setFaceStatus('Camera ready. Tap Mark.', 'info');
             hideResult();
-        } catch (e) {
-            setFaceStatus('Camera access denied.', 'error');
-        }
+        } catch { setFaceStatus('❌ Camera access denied.', 'error'); }
     }
 
     function stopCamera() {
@@ -405,65 +379,58 @@
         }
     }
 
+    // Multi‑descriptor matching
     function findBestMatch(descriptor) {
-        let bestDist = Infinity;
-        let bestStudent = null;
-        for (const student of students) {
-            for (const desc of student.descriptors) {
-                const dist = faceapi.euclideanDistance(descriptor, desc);
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    bestStudent = student;
-                }
+        let bestDist = Infinity, bestStudent = null;
+        for (const s of students) {
+            for (const d of s.descriptors) {
+                const dist = faceapi.euclideanDistance(descriptor, d);
+                if (dist < bestDist) { bestDist = dist; bestStudent = s; }
             }
         }
-        const THRESHOLD = 0.6;
-        if (bestDist < THRESHOLD) {
-            return { student: bestStudent, distance: bestDist };
-        }
+        if (bestDist < 0.6) return { student: bestStudent, distance: bestDist };
         return null;
     }
 
     async function markAttendance() {
+        if (!faceModelsLoaded) {
+            const ok = await loadFaceModels();
+            if (!ok) return;
+        }
         if (!cameraStream || video.readyState < 2) {
             setFaceStatus('⚠️ Start camera first.', 'error');
             return;
         }
-
-        setFaceStatus('Capturing and recognising...', 'info');
+        setFaceStatus('Recognising...', 'info');
         hideResult();
 
         try {
-            // Detect face in current frame
-            const detection = await faceapi.detectSingleFace(video, new faceapi.SsdMobilenetv1Options())
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
                 .withFaceLandmarks()
                 .withFaceDescriptor();
 
             if (!detection) {
-                showResult('No face detected', 'Please look at the camera and try again.', 'error');
-                setFaceStatus(' No face in frame.', 'error');
+                showResult('😕', 'No face', 'Look at camera and try again.', 'error');
+                setFaceStatus('No face.', 'error');
                 return;
             }
 
-            const descriptor = detection.descriptor;
-            const match = findBestMatch(descriptor);
-
+            const match = findBestMatch(detection.descriptor);
             if (!match) {
-                showResult('Not recognised', 'You are not in the system. Please contact admin.', 'error');
-                setFaceStatus(' Unknown person.', 'error');
+                showResult('❌', 'Not recognised', 'You are not in the system.', 'error');
+                setFaceStatus('Unknown.', 'error');
                 return;
             }
 
             const name = match.student.name;
             const confidence = (1 - match.distance) * 100;
 
-            // Mark attendance
-            const today = getTodayStr();
+            const today = todayStr();
             const records = await getFullAttendance(today);
             const found = records.find(r => r.name === name);
             if (found && found.status === 'Present') {
-                showResult(name, `You are already marked present today (confidence ${confidence.toFixed(1)}%).`, 'success');
-                setFaceStatus(` ${name} already present.`, 'info');
+                showResult('⏳', name, `Already present (${confidence.toFixed(0)}%)`, 'success');
+                setFaceStatus(`Already marked.`, 'info');
                 return;
             }
 
@@ -471,20 +438,17 @@
                 if (r.name === name) r.status = 'Present';
                 return r;
             });
-            const csvContent = updated.map(r => `${r.name},${r.status}`).join('\n');
-            await updateFile(getCsvPath(today), csvContent, `Mark ${name} present`);
+            const csv = updated.map(r => `${r.name},${r.status}`).join('\n');
+            await updateFile(csvPath(today), csv, `Mark ${name}`);
 
-            showResult(name, `Your attendance is marked! You may go now. (confidence ${confidence.toFixed(1)}%)`, 'success');
-            setFaceStatus(` ${name} marked present!`, 'success');
+            showResult('✅', name, `Attendance marked! You may go. (${confidence.toFixed(0)}%)`, 'success');
+            setFaceStatus(`✅ ${name} marked.`, 'success');
         } catch (err) {
-            showResult('Error', err.message, 'error');
-            setFaceStatus(' Error: ' + err.message, 'error');
+            showResult('⚠️', 'Error', err.message, 'error');
+            setFaceStatus('Error: ' + err.message, 'error');
         }
     }
 
-    // ============================================================
-    //  FACE PAGE EVENT LISTENERS
-    // ============================================================
     document.getElementById('startCam').addEventListener('click', startCamera);
     document.getElementById('stopCam').addEventListener('click', stopCamera);
     document.getElementById('markAttendanceBtn').addEventListener('click', markAttendance);
@@ -497,10 +461,7 @@
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
         try {
             const records = await getFullAttendance(dateStr);
-            if (!records || records.length === 0) {
-                wrap.innerHTML = '<div class="empty-msg">No records.</div>';
-                return;
-            }
+            if (!records || records.length === 0) { wrap.innerHTML = '<div class="empty-msg">No data.</div>'; return; }
             let html = `<table><thead><tr><th>Name</th><th>Status</th></tr></thead><tbody>`;
             let present = 0;
             for (const r of records) {
@@ -511,7 +472,7 @@
             html += `</tbody></table>`;
             wrap.innerHTML = html;
             const summary = document.createElement('div');
-            summary.style.marginTop = '12px';
+            summary.style.marginTop = '8px';
             summary.style.fontWeight = '600';
             summary.textContent = `Present: ${present}  |  Absent: ${records.length - present}`;
             wrap.parentNode.insertBefore(summary, wrap.nextSibling);
@@ -526,10 +487,7 @@
         try {
             const records = await getFullAttendance(dateStr);
             const absent = records.filter(r => r.status === 'Absent');
-            if (absent.length === 0) {
-                wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>';
-                return;
-            }
+            if (absent.length === 0) { wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>'; return; }
             let html = `<table><thead><tr><th>Name</th></tr></thead><tbody>`;
             for (const r of absent) html += `<tr><td>${r.name}</td></tr>`;
             html += `</tbody></table>`;
@@ -582,13 +540,12 @@
     //  INIT
     // ============================================================
     (async function init() {
-        // Show main page
         showPage('page-main');
-        // Load students and set today's dates
         await loadStudents();
-        const today = getTodayStr();
+        const today = todayStr();
         document.getElementById('attDate').value = today;
         document.getElementById('absDate').value = today;
+        checkConnection();
         console.log('App ready.');
     })();
 </script>
