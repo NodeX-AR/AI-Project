@@ -151,7 +151,7 @@
 
 <script>
     async function githubRequest(method, path, data = null) {
-        const url = '/.netlify/functions/github';
+        const url = '/api/github';
         console.log(`Sending ${method} to ${url} with path: ${path}`);
         const response = await fetch(url, {
             method: 'POST',
