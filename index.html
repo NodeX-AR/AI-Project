@@ -164,7 +164,7 @@
     //  GITHUB PROXY HELPERS (via Vercel)
     // ============================================================
     async function githubRequest(method, path, data = null) {
-        const response = await fetch('/api/github.js', {
+        const response = await fetch('/api/github', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path, method, data }),
