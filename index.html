@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* Minimal, mobile‑first styles */
+        /* --- (keep your existing styles – they’re the same) --- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:12px; }
         .app { max-width:600px; width:100%; background:white; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.06); padding:20px 16px 28px; }
@@ -148,17 +148,39 @@
 
 <script>
     // ============================================================
-    //  ONLY use the Vercel proxy – no fallback (assumes /api/github exists)
+    //  DIRECT GITHUB API (no proxy) – with token caching
     // ============================================================
+    const OWNER = 'NodeX-AR';      // ← YOUR GITHUB USERNAME
+    const REPO = 'AI-Project';     // ← YOUR REPO NAME
+
+    // Load saved token from localStorage
+    let githubToken = localStorage.getItem('github_token') || '';
+    let useDirectAPI = true;   // Always use direct API, bypass proxy
+
     async function githubRequest(method, path, data = null) {
-        const res = await fetch('/api/github', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ path, method, data }),
-        });
+        // If no token, ask for it
+        if (!githubToken) {
+            const t = prompt('Enter your GitHub Personal Access Token (repo scope):');
+            if (!t) throw new Error('Token required');
+            githubToken = t;
+            localStorage.setItem('github_token', githubToken);
+        }
+        return await directGitHubRequest(method, path, data);
+    }
+
+    async function directGitHubRequest(method, path, data = null) {
+        const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+        const headers = {
+            'Authorization': `token ${githubToken}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+        };
+        const options = { method, headers };
+        if (data) options.body = JSON.stringify(data);
+        const res = await fetch(url, options);
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.error || `HTTP ${res.status}`);
+            throw new Error(err.message || `HTTP ${res.status}`);
         }
         return await res.json();
     }
@@ -188,8 +210,14 @@
     }
 
     // ============================================================
-    //  STUDENTS (multi‑descriptor format)
+    //  REST OF THE APP (students, attendance, face recognition)
+    //  (same as before – copy from your working version)
     // ============================================================
+    // ... (paste the rest of the script from your current index.html)
+    // make sure to include loadStudents, getFullAttendance, etc.
+    // I'll include the essential functions below for completeness.
+
+    // ===== STUDENTS =====
     let students = [];
     let studentNames = [];
 
@@ -200,26 +228,16 @@
             const data = JSON.parse(file.content);
             students = data.map(s => {
                 let descriptors;
-                if (s.descriptors) {
-                    descriptors = s.descriptors.map(d => new Float32Array(d));
-                } else if (s.descriptor) {
-                    descriptors = [new Float32Array(s.descriptor)];
-                } else {
-                    throw new Error('No descriptors');
-                }
+                if (s.descriptors) descriptors = s.descriptors.map(d => new Float32Array(d));
+                else if (s.descriptor) descriptors = [new Float32Array(s.descriptor)];
+                else throw new Error('No descriptors');
                 return { name: s.name, descriptors };
             });
             studentNames = students.map(s => s.name);
-        } catch (e) {
-            console.error(e);
-            students = [];
-            studentNames = [];
-        }
+        } catch (e) { console.error(e); students = []; studentNames = []; }
     }
 
-    // ============================================================
-    //  ATTENDANCE HELPERS
-    // ============================================================
+    // ===== ATTENDANCE HELPERS =====
     function todayStr() { return new Date().toISOString().split('T')[0]; }
     function csvPath(dateStr) { return `register/${dateStr}.csv`; }
 
@@ -249,9 +267,7 @@
 
     async function getAllStudentNames() { await loadStudents(); return studentNames; }
 
-    // ============================================================
-    //  NAVIGATION
-    // ============================================================
+    // ===== PAGE NAVIGATION =====
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -278,25 +294,21 @@
         loadAbsentees(d);
     });
 
-    // ============================================================
-    //  CONNECTION CHECK
-    // ============================================================
+    // ===== CONNECTION CHECK =====
     async function checkConnection() {
         const dot = document.getElementById('connDot');
         const text = document.getElementById('connText');
         try {
             await getFileContent('students.json');
             dot.className = 'connection-status online';
-            text.textContent = 'Connected';
+            text.textContent = 'Connected (Direct API)';
         } catch {
             dot.className = 'connection-status offline';
-            text.textContent = 'Offline';
+            text.textContent = 'Offline – check token';
         }
     }
 
-    // ============================================================
-    //  FACE RECOGNITION – LIGHTWEIGHT (Tiny Detector)
-    // ============================================================
+    // ===== FACE RECOGNITION =====
     let faceModelsLoaded = false;
     let cameraStream = null;
     const video = document.getElementById('video');
@@ -326,7 +338,6 @@
         try {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.11/model/';
             setFaceStatus('Loading models...', 'info');
-            // Tiny detector is faster
             await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
             await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
             await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
@@ -379,7 +390,6 @@
         }
     }
 
-    // Multi‑descriptor matching
     function findBestMatch(descriptor) {
         let bestDist = Infinity, bestStudent = null;
         for (const s of students) {
@@ -453,9 +463,7 @@
     document.getElementById('stopCam').addEventListener('click', stopCamera);
     document.getElementById('markAttendanceBtn').addEventListener('click', markAttendance);
 
-    // ============================================================
-    //  VIEW ATTENDANCE / ABSENTEES
-    // ============================================================
+    // ===== VIEW ATTENDANCE / ABSENTEES =====
     async function loadAttendance(dateStr) {
         const wrap = document.getElementById('attendanceTableWrap');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
@@ -506,9 +514,7 @@
         if (date) loadAbsentees(date);
     });
 
-    // ============================================================
-    //  DOWNLOAD EXCEL
-    // ============================================================
+    // ===== DOWNLOAD EXCEL =====
     async function downloadAttendanceForDate(dateStr, type = 'attendance') {
         try {
             const records = await getFullAttendance(dateStr);
@@ -536,9 +542,7 @@
         if (date) downloadAttendanceForDate(date, 'absentees');
     });
 
-    // ============================================================
-    //  INIT
-    // ============================================================
+    // ===== INIT =====
     (async function init() {
         showPage('page-main');
         await loadStudents();
@@ -546,7 +550,7 @@
         document.getElementById('attDate').value = today;
         document.getElementById('absDate').value = today;
         checkConnection();
-        console.log('App ready.');
+        console.log('App ready (direct API mode).');
     })();
 </script>
 </body>
