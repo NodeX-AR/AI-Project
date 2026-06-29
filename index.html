@@ -4,11 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Smart Attendance</title>
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://justadudewhohacks.github.io; worker-src 'self' blob:; connect-src 'self' https://api.github.com;">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.1/xlsx.full.min.js"></script>
     <style>
-        /* --- (keep your existing styles – they’re the same) --- */
+        /* --- (your styles remain exactly the same) --- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI',Roboto,sans-serif; background:#f5f7fb; color:#1e293b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:12px; }
         .app { max-width:600px; width:100%; background:white; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.06); padding:20px 16px 28px; }
@@ -211,14 +210,8 @@
     }
 
     // ============================================================
-    //  REST OF THE APP (students, attendance, face recognition)
-    //  (same as before – copy from your working version)
+    //  STUDENTS
     // ============================================================
-    // ... (paste the rest of the script from your current index.html)
-    // make sure to include loadStudents, getFullAttendance, etc.
-    // I'll include the essential functions below for completeness.
-
-    // ===== STUDENTS =====
     let students = [];
     let studentNames = [];
 
@@ -238,7 +231,9 @@
         } catch (e) { console.error(e); students = []; studentNames = []; }
     }
 
-    // ===== ATTENDANCE HELPERS =====
+    // ============================================================
+    //  ATTENDANCE HELPERS
+    // ============================================================
     function todayStr() { return new Date().toISOString().split('T')[0]; }
     function csvPath(dateStr) { return `register/${dateStr}.csv`; }
 
@@ -268,7 +263,9 @@
 
     async function getAllStudentNames() { await loadStudents(); return studentNames; }
 
-    // ===== PAGE NAVIGATION =====
+    // ============================================================
+    //  PAGE NAVIGATION
+    // ============================================================
     function showPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -295,7 +292,9 @@
         loadAbsentees(d);
     });
 
-    // ===== CONNECTION CHECK =====
+    // ============================================================
+    //  CONNECTION CHECK
+    // ============================================================
     async function checkConnection() {
         const dot = document.getElementById('connDot');
         const text = document.getElementById('connText');
@@ -309,7 +308,9 @@
         }
     }
 
-    // ===== FACE RECOGNITION =====
+    // ============================================================
+    //  FACE RECOGNITION
+    // ============================================================
     let faceModelsLoaded = false;
     let cameraStream = null;
     const video = document.getElementById('video');
@@ -464,7 +465,9 @@
     document.getElementById('stopCam').addEventListener('click', stopCamera);
     document.getElementById('markAttendanceBtn').addEventListener('click', markAttendance);
 
-    // ===== VIEW ATTENDANCE / ABSENTEES =====
+    // ============================================================
+    //  VIEW ATTENDANCE / ABSENTEES
+    // ============================================================
     async function loadAttendance(dateStr) {
         const wrap = document.getElementById('attendanceTableWrap');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
@@ -515,7 +518,9 @@
         if (date) loadAbsentees(date);
     });
 
-    // ===== DOWNLOAD EXCEL =====
+    // ============================================================
+    //  DOWNLOAD EXCEL
+    // ============================================================
     async function downloadAttendanceForDate(dateStr, type = 'attendance') {
         try {
             const records = await getFullAttendance(dateStr);
@@ -543,7 +548,9 @@
         if (date) downloadAttendanceForDate(date, 'absentees');
     });
 
-    // ===== INIT =====
+    // ============================================================
+    //  INIT
+    // ============================================================
     (async function init() {
         showPage('page-main');
         await loadStudents();
