@@ -91,8 +91,6 @@
             <span>Connected via GitHub proxy</span>
         </div>
     </div>
-
-    
     <div id="page-face" class="page">
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
@@ -124,8 +122,6 @@
             <button class="action-btn primary" id="downloadAttendance">⬇ Excel</button>
         </div>
 
-
-        
         <div class="date-picker">
             <input type="date" id="attDate" />
             <button id="loadAttendance">Load</button>
@@ -154,7 +150,6 @@
 
 </div>
 
-    
 <script>
     async function githubRequest(method, path, data = null) {
         const url = '/api/github';
@@ -171,8 +166,6 @@
         return await response.json();
     }
 
-
-    
     async function getFileContent(path) {
         try {
             const data = await githubRequest('GET', path);
@@ -187,7 +180,6 @@
         }
     }
 
-    
     async function updateFile(path, content, message = 'Update file') {
         const existing = await getFileContent(path);
         const payload = {
@@ -197,10 +189,9 @@
         };
         return await githubRequest('PUT', path, payload);
     }
-
-    
     let students = [];
     let studentNames = [];
+
     async function loadStudents() {
         try {
             const file = await getFileContent('students.json');
@@ -230,19 +221,14 @@
             studentNames = [];
         }
     }
-
     function getTodayStr() {
         return new Date().toISOString().split('T')[0];
     }
 
-
-    
     function getCsvPath(dateStr) {
         return `register/${dateStr}.csv`;
     }
 
-
-    
     async function loadAttendanceCsv(dateStr) {
         try {
             const file = await getFileContent(getCsvPath(dateStr));
@@ -279,7 +265,9 @@
         return studentNames;
     }
 
-    
+    // ============================================================
+    //  PAGE NAVIGATION
+    // ============================================================
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
@@ -287,20 +275,18 @@
 
     document.querySelectorAll('[data-back]').forEach(btn => {
         btn.addEventListener('click', () => showPage('page-main'));
-    });   
+    });
 
     document.getElementById('goFace').addEventListener('click', () => {
         showPage('page-face');
         initFaceRecognition();
     });
-    
     document.getElementById('goAttendance').addEventListener('click', () => {
         showPage('page-attendance');
         const today = getTodayStr();
         document.getElementById('attDate').value = today;
         loadAttendance(today);
     });
-    
     document.getElementById('goAbsentees').addEventListener('click', () => {
         showPage('page-absentees');
         const today = getTodayStr();
@@ -316,12 +302,12 @@
     const resultName = document.getElementById('resultName');
     const resultSub = document.getElementById('resultSub');
     const markBtn = document.getElementById('markAttendanceBtn');
+
     function setFaceStatus(msg, type = 'info') {
         faceStatus.textContent = msg;
         faceStatus.className = 'status-msg ' + type;
     }
 
-    
     function showResult(emoji, name, sub, type) {
         resultBox.classList.remove('hidden', 'success', 'error');
         resultBox.classList.add(type);
@@ -334,7 +320,6 @@
         resultBox.classList.add('hidden');
     }
 
-    
     async function loadFaceModels() {
         if (faceModelsLoaded) return true;
         markBtn.disabled = true;
@@ -380,8 +365,6 @@
         hideResult();
     }
 
-
-    
     async function startCamera() {
         if (cameraStream) stopCamera();
         try {
@@ -396,6 +379,7 @@
             markBtn.disabled = true;
         }
     }
+
     function stopCamera() {
         if (cameraStream) {
             cameraStream.getTracks().forEach(t => t.stop());
@@ -422,10 +406,10 @@
         const THRESHOLD = 0.5;   // stricter
         if (bestDist < THRESHOLD) {
             const confidence = Math.max(0, (1 - bestDist / THRESHOLD) * 100);
-            console.log(`Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
+            console.log(`✅ Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
             return { student: bestStudent, distance: bestDist, confidence };
         }
-        console.warn(' No match – best distance ${bestDist.toFixed(3)} > threshold');
+        console.warn(`❌ No match – best distance ${bestDist.toFixed(3)} > threshold`);
         return null;
     }
 
@@ -445,7 +429,6 @@
             return;
         }
 
-        
         setFaceStatus('Wait recognising...', 'info');
         hideResult();
 
@@ -527,7 +510,6 @@
         }
     }
 
-            
     async function loadAbsentees(dateStr) {
         const wrap = document.getElementById('absenteesList');
         wrap.innerHTML = '<div class="empty-msg">Loading...</div>';
@@ -535,7 +517,7 @@
             const records = await getFullAttendance(dateStr);
             const absent = records.filter(r => r.status === 'Absent');
             if (absent.length === 0) {
-                wrap.innerHTML = '<div class="empty-msg">Everyone is present!</div>';
+                wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>';
                 return;
             }
             let html = `<table><thead><tr><th>Name</th></tr></thead><tbody>`;
@@ -572,6 +554,7 @@
             alert('Download failed: ' + e.message);
         }
     }
+
     document.getElementById('downloadAttendance').addEventListener('click', () => {
         const date = document.getElementById('attDate').value;
         if (date) downloadAttendanceForDate(date, 'attendance');
