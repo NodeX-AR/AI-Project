@@ -119,7 +119,7 @@
         <div class="page-header">
             <button class="back-btn" data-back="main">‹</button>
             <span class="page-title">Attendance</span>
-            <button class="action-btn primary" id="downloadAttendance">⬇ Excel</button>
+            <button class="action-btn primary" id="downloadAttendance">Download Excel</button>
         </div>
 
         <div class="date-picker">
@@ -265,9 +265,6 @@
         return studentNames;
     }
 
-    // ============================================================
-    //  PAGE NAVIGATION
-    // ============================================================
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
@@ -406,10 +403,10 @@
         const THRESHOLD = 0.5;   // stricter
         if (bestDist < THRESHOLD) {
             const confidence = Math.max(0, (1 - bestDist / THRESHOLD) * 100);
-            console.log(`✅ Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
+            console.log(`Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
             return { student: bestStudent, distance: bestDist, confidence };
         }
-        console.warn(`❌ No match – best distance ${bestDist.toFixed(3)} > threshold`);
+        console.warn(`No match – best distance ${bestDist.toFixed(3)} > threshold`);
         return null;
     }
 
@@ -517,7 +514,7 @@
             const records = await getFullAttendance(dateStr);
             const absent = records.filter(r => r.status === 'Absent');
             if (absent.length === 0) {
-                wrap.innerHTML = '<div class="empty-msg">🎉 Everyone is present!</div>';
+                wrap.innerHTML = '<div class="empty-msg">Everyone is present!</div>';
                 return;
             }
             let html = `<table><thead><tr><th>Name</th></tr></thead><tbody>`;
