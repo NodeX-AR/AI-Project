@@ -1,0 +1,32 @@
+name: Create Daily Attendance File
+
+on:
+  # Run automatically at midnight UTC every day
+  schedule:
+    - cron: '0 0 * * *'
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  create-file:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Create today's attendance CSV
+        run: node .github/scripts/create-attendance.js
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add register/
+          git diff --staged --quiet || git commit -m "Auto-create attendance file for $(date +'%Y-%m-%d')"
+          git push
