@@ -425,7 +425,7 @@
             console.log(`Match found: ${bestStudent.name} with confidence ${confidence.toFixed(1)}%`);
             return { student: bestStudent, distance: bestDist, confidence };
         }
-        console.warn(' No match – best distance ${bestDist.toFixed(3)} > threshold`);
+        console.warn(' No match – best distance ${bestDist.toFixed(3)} > threshold');
         return null;
     }
 
